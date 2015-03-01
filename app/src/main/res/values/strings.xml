@@ -5,7 +5,8 @@
     <string name="txt_distance">0 m</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
-    <string name="txtDistance">0</string>
     <string name="title_activity_tournament">TournamentActivity</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="txt_time">0 s</string>
+    <string name="set_accuracy">set accuracy</string>
+    <string name="txt_run_over" />
 </resources>

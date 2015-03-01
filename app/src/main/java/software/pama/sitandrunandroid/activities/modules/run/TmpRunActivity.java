@@ -1,38 +1,38 @@
-package software.pama.sitandrunandroid.activities;
+package software.pama.sitandrunandroid.activities.modules.run;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import software.pama.sitandrunandroid.R;
 import software.pama.sitandrunandroid.model.RunDistance;
-import software.pama.sitandrunandroid.modules.run.LocationServiceManager;
+import software.pama.sitandrunandroid.model.RunResult;
 
 public class TmpRunActivity extends Activity {
 
-    /** Czas określający co ile ms zaktualizować wyświetlane dane. */
     private final long THREAD_UPDATE_MS = 2000;
 
-    /** Przechowuje wątki aktywności. */
     private Handler threadHandler;
-    /** Zapewnia komunikację z LocationService i jego obsługę. */
-    private LocationServiceManager userLocation;
+    private LocationModuleConnector locationModuleConnector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        userLocation = new LocationServiceManager(getApplicationContext(), RunDistance.FIVE);
+        locationModuleConnector = new LocationModuleConnector(getApplicationContext(), RunDistance.FIVE);
         threadHandler = new Handler();
     }
 
     public void startRunService(View view) {
-        userLocation.startLocationService();
+        locationModuleConnector.startModule();
         showLocation.run();
     }
 
@@ -62,9 +62,6 @@ public class TmpRunActivity extends Activity {
         return true;
     }
 
-    /**
-     * Wątek wyświetlający całkowitą lokalizację.
-     */
     private Runnable showLocation = new Runnable() {
         @Override
         public void run() {
@@ -78,11 +75,19 @@ public class TmpRunActivity extends Activity {
     }
 
     private void updateUI() {
-        userLocation.updateLocationDetails();
-        float totalDistance = userLocation.getUserTotalDistance();
+        RunResult result = locationModuleConnector.getRunResult();
+        if (result == null)
+            return;
         TextView txtDistance = (TextView) findViewById(R.id.txtDistance);
-        txtDistance.setText(Float.toString(totalDistance) + " m");
-        Log.d("D", "Total distance: " + totalDistance);
+        TextView txtTime = (TextView) findViewById(R.id.txtTime);
+        txtDistance.setText(Float.toString(result.getTotalDistance()) + " m");
+        long totalTime = result.getTotalTime();
+        DateFormat formatter = new SimpleDateFormat("mm:ss:SSS");
+        txtTime.setText(formatter.format(new Date(totalTime)) + " s");
+        if (locationModuleConnector.isRunOver()) {
+            TextView txtRunOver = (TextView) findViewById(R.id.txtRunOver);
+            txtRunOver.setText("Run over!");
+        }
     }
 
     private void stopThreads() {
@@ -90,6 +95,6 @@ public class TmpRunActivity extends Activity {
     }
 
     private void stopLocationService() {
-        userLocation.stopLocationService();
+        locationModuleConnector.stopModule();
     }
 }

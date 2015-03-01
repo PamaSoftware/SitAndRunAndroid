@@ -6,7 +6,7 @@
     <statePointEntry>
       <state      
         class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
-        className = "software.pama.sitandrunandroid.activities.TmpRunActivity"/>
+        className = "software.pama.sitandrunandroid.activities.modules.run.TmpRunActivity"/>
       <point      
         x = "508"      
         y = "132"/>
@@ -14,7 +14,7 @@
     <statePointEntry>
       <state      
         class = "com.android.tools.idea.editors.navigation.model.MenuState"      
-        className = "software.pama.sitandrunandroid.activities.TmpRunActivity"/>
+        className = "software.pama.sitandrunandroid.activities.modules.run.TmpRunActivity"/>
       <point      
         x = "1776"      
         y = "132"/>

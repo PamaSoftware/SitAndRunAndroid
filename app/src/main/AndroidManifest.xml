@@ -13,13 +13,13 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".modules.run.LocationService"
+            android:name=".modules.run.LocationModule"
             android:enabled="true"
             android:exported="true" >
         </service>
 
         <activity
-            android:name=".activities.TmpRunActivity"
+            android:name=".activities.modules.run.TmpRunActivity"
             android:label="@string/title_activity_tournament" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
