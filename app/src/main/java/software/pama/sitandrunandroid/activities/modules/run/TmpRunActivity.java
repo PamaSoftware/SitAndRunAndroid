@@ -28,11 +28,13 @@ public class TmpRunActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         locationModuleConnector = new LocationModuleConnector(getApplicationContext(), RunDistance.FIVE);
+        locationModuleConnector.prepareModule();
         threadHandler = new Handler();
+        showSattelites.run();
     }
 
     public void startRunService(View view) {
-        locationModuleConnector.startModule();
+        locationModuleConnector.startRun();
         showLocation.run();
     }
 
@@ -62,16 +64,8 @@ public class TmpRunActivity extends Activity {
         return true;
     }
 
-    private Runnable showLocation = new Runnable() {
-        @Override
-        public void run() {
-            updateUI();
-            delayThreadPost();
-        }
-    };
-
-    private void delayThreadPost() {
-        threadHandler.postDelayed(showLocation, THREAD_UPDATE_MS);
+    private void delayThreadPost(Runnable runnable) {
+        threadHandler.postDelayed(runnable, THREAD_UPDATE_MS);
     }
 
     private void updateUI() {
@@ -97,4 +91,23 @@ public class TmpRunActivity extends Activity {
     private void stopLocationService() {
         locationModuleConnector.stopModule();
     }
+
+    private Runnable showLocation = new Runnable() {
+        @Override
+        public void run() {
+            updateUI();
+            delayThreadPost(this);
+        }
+    };
+
+    private Runnable showSattelites = new Runnable() {
+        @Override
+        public void run() {
+            TextView txtSattelites = (TextView) findViewById(R.id.txtSattelites);
+            txtSattelites.setText("Sattelites: " + locationModuleConnector.getFixedSattelitesNumber());
+            delayThreadPost(this);
+        }
+    };
+
+
 }

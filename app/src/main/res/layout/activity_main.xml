@@ -21,10 +21,19 @@
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:textAlignment="center"
-        android:textSize="48dp"
+        android:textSize="40dp"
         android:text="@string/txt_time"
         android:id="@+id/txtTime"
         android:layout_below="@+id/txtDistance" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:textAlignment="center"
+        android:textSize="40dp"
+        android:text="@string/txt_run_over"
+        android:id="@+id/txtRunOver"
+        android:layout_below="@+id/btn_run" />
 
     <Button
         android:layout_width="wrap_content"
@@ -36,21 +45,15 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:textAlignment="center"
-        android:textSize="48dp"
-        android:text="@string/txt_run_over"
-        android:id="@+id/txtRunOver"
+        android:textSize="40dp"
+        android:text="@string/txt_sattelites"
+        android:id="@+id/txtSattelites"
         android:layout_below="@+id/btn_run" />
-
-    <EditText
-        android:id="@+id/email_address"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/set_accuracy"
-        android:inputType="textEmailAddress"
         android:layout_below="@+id/txtRunOver" />
 
 </RelativeLayout>

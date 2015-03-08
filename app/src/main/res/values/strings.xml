@@ -9,4 +9,5 @@
     <string name="txt_time">0 s</string>
     <string name="set_accuracy">set accuracy</string>
     <string name="txt_run_over" />
+    <string name="txt_sattelites">Sattelites:</string>
 </resources>

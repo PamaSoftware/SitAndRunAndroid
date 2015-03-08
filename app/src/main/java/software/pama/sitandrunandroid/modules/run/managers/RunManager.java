@@ -21,7 +21,7 @@ public class RunManager extends Thread {
 
     public RunManager(int distanceToRun, LocationListenerManager locationListenerManager, Handler threadHandler) {
 //        this.distanceToRun = distanceToRun;
-        this.distanceToRun = 100;
+        this.distanceToRun = 200;
         this.locationListenerManager = locationListenerManager;
         this.threadHandler = threadHandler;
         this.runTimeCounter = new RunTimeCounter();
@@ -29,7 +29,7 @@ public class RunManager extends Thread {
 
     @Override
     public void run() {
-        // TODO pomyśleć nad wyrzuceniem teog stad zeby oszczedzic na ilosci operacji
+        // TODO pomyśleć nad wyrzuceniem tego stad zeby oszczedzic na ilosci operacji
         runTimeCounter.start();
         Location newLocation = locationListenerManager.getCurrentLocation();
         if (newLocation != null) {
@@ -37,7 +37,11 @@ public class RunManager extends Thread {
                 totalDistance += currentLocation.distanceTo(newLocation);
             currentLocation = newLocation;
             runTimeCounter.current();
-//            totalDistance += new Random().nextInt(30) + 1;
+            float edge = (distanceToRun - totalDistance) / (float) distanceToRun;
+            if (edge < 0.05) {
+                locationListenerManager.lowerLocationUpdateDistance(0.33f);
+            }
+//            totalDistance += new Random().nextInt(10) + 1;
             Log.d("Finish Counter", "Total distance: " + totalDistance);
             if (distanceToRun - totalDistance < 0) {
                 runOver = true;

@@ -28,9 +28,14 @@ public class LocationModuleConnector {
         this.distanceToRun = distanceToRun;
     }
 
-    public void startModule() {
+    public void prepareModule() {
         overrideServiceConnectionMethods();
         activateLocationService();
+    }
+
+    public void startRun() {
+        if (locationModuleBounded)
+            locationModule.startRun();
     }
 
     public boolean isRunOver() {
@@ -56,6 +61,7 @@ public class LocationModuleConnector {
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 bindWithLocationService(iBinder);
                 locationModuleBounded = true;
+                locationModule.startLocationListener();
             }
 
             @Override
@@ -64,6 +70,10 @@ public class LocationModuleConnector {
             }
         };
 
+    }
+
+    public int getFixedSattelitesNumber() {
+        return locationModuleBounded ? locationModule.getFixedSattelitesNumber() : 0;
     }
 
     private void activateLocationService() {

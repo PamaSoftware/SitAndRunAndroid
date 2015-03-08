@@ -38,13 +38,25 @@ public class LocationModule extends Service {
         int distanceToRun = intent.getIntExtra(LocationConstants.DISTANCE_TO_RUN_EXTRA, -1);
         locationListenerManager = new LocationListenerManager(this);
         runManager = new RunManager(distanceToRun, locationListenerManager, handler);
-        startManagingThreads();
         Toast.makeText(this, "Location Module started", Toast.LENGTH_LONG).show();
         return START_STICKY;
     }
 
+    public void startLocationListener() {
+        locationListenerManager.startLocationManager();
+    }
+
+    public void startRun() {
+        runManager.run();
+        new ModuleManager().run();
+    }
+
     public boolean isRunOver() {
         return runOver;
+    }
+
+    public int getFixedSattelitesNumber() {
+        return locationListenerManager.getFixedSattelitesNumber();
     }
 
     public RunResult getCurrentRunResult() {
@@ -62,12 +74,6 @@ public class LocationModule extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return localBinder;
-    }
-
-    private void startManagingThreads() {
-        locationListenerManager.startLocationManager();
-        runManager.run();
-        new ModuleManager().run();
     }
 
     private void joinDistanceManager() {
