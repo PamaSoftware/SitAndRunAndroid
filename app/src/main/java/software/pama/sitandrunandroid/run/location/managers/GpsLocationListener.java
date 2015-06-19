@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.modules.run.managers;
+package software.pama.sitandrunandroid.run.location.managers;
 
 import android.content.Context;
 import android.location.GpsSatellite;
@@ -13,7 +13,7 @@ import android.util.Log;
 import static android.location.LocationManager.GPS_PROVIDER;
 
 // TODO przeliczać wynik na czas uśredniając końcówkę biegu
-public class LocationListenerManager implements LocationListener, GpsStatus.Listener {
+public class GpsLocationListener implements LocationListener, GpsStatus.Listener {
 
     // zmienić i sprawdzić czy jest niedokładne
     private static final int LOCATION_UPDATE_TIME_MS = 0;
@@ -31,18 +31,18 @@ public class LocationListenerManager implements LocationListener, GpsStatus.List
     private int fixedSattelitesNumber;
     private boolean firstTime = true;
 
-    public LocationListenerManager(Context appContext) {
+    public GpsLocationListener(Context appContext) {
         this.appContext = appContext;
     }
 
-    public void startLocationManager() {
+    public void startLocationListener() {
         locationManager = (android.location.LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
         // TODO sprawdzić jak niedokładny jest GPS przy dużym zachmurzeniu, deszczu
         locationManager.requestLocationUpdates(GPS_PROVIDER, LOCATION_UPDATE_TIME_MS, 0, this);
         locationManager.addGpsStatusListener(this);
     }
 
-    public int getFixedSattelitesNumber() {
+    public int getFixedSatellitesNumber() {
         return fixedSattelitesNumber;
     }
 
@@ -59,13 +59,13 @@ public class LocationListenerManager implements LocationListener, GpsStatus.List
         float result = locationUpdateDistanceM - locationUpdateDistanceM * lowerPercentage;
         if (result >= BOARD_LINE_FOR_LOCATION) {
             locationUpdateDistanceM = result;
-            Log.i("LocationListenerManager", "Location update distance changed to " + result);
+            Log.i("GpsLocationListener", "Location update distance changed to " + result);
         }
     }
 
     @Override
     public void onLocationChanged(final Location location) {
-        Log.i("LocationListenerManager", "User location changed. New Location: " + location);
+        Log.i("GpsLocationListener", "User location changed. New Location: " + location);
         if (isAccurate(location) && isFarEnough(location)) {
             if (firstTime) {
                 // location is fixed and accurate so we can start running
@@ -82,18 +82,18 @@ public class LocationListenerManager implements LocationListener, GpsStatus.List
         if (currentLocation == null)
             return true;
         float distance = currentLocation.distanceTo(location);
-        Log.d("LocationListenerManager", "Location far enough: " + distance);
+        Log.d("GpsLocationListener", "Location far enough: " + distance);
         return distance > locationUpdateDistanceM;
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d("LocationListenerManager", "Gps Disabled. Provder: " + provider);
+        Log.d("GpsLocationListener", "Gps Disabled. Provder: " + provider);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d("LocationListenerManager", "Gps Enabled");
+        Log.d("GpsLocationListener", "Gps Enabled");
     }
 
     @Override
@@ -113,13 +113,13 @@ public class LocationListenerManager implements LocationListener, GpsStatus.List
         for (GpsSatellite satellite : satellites)
             if (satellite.usedInFix())
                 fixedSattelitesNumber++;
-        Log.i("LocationListenerManager", "Sattelites number: " + fixedSattelitesNumber);
+        Log.i("GpsLocationListener", "Sattelites number: " + fixedSattelitesNumber);
     }
 
     private boolean isAccurate(Location location) {
         if (location == null)
             return false;
-        Log.d("LocationListenerManager", "Location accuracy: " + location.getAccuracy());
+        Log.d("GpsLocationListener", "Location accuracy: " + location.getAccuracy());
         return location.getAccuracy() > 0.0 && location.getAccuracy() <= LOCATION_ACCURACY_M;
     }
 

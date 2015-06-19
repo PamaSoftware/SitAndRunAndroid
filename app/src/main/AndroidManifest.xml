@@ -33,7 +33,7 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".modules.run.LocationModule"
+            android:name=".run.location.LocationModule"
             android:enabled="true"
             android:exported="true" >
         </service>

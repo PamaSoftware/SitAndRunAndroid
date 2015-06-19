@@ -4,6 +4,7 @@ public class RunResult {
 
     private long totalDistance;
     private long totalTime;
+    // dodaæ tu dok³adnoœæ poprzedniego pomiaru
 
     public RunResult(long totalDistance, long totalTime) {
         this.totalDistance = totalDistance;

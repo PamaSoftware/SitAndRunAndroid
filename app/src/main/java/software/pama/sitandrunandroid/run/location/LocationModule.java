@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.modules.run;
+package software.pama.sitandrunandroid.run.location;
 
 import android.app.Service;
 import android.content.Intent;
@@ -9,9 +9,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.modules.run.extras.LocationConstants;
-import software.pama.sitandrunandroid.modules.run.managers.RunManager;
-import software.pama.sitandrunandroid.modules.run.managers.LocationListenerManager;
+import software.pama.sitandrunandroid.run.location.intent.IntentParams;
+import software.pama.sitandrunandroid.run.location.managers.GpsLocationListener;
+import software.pama.sitandrunandroid.run.location.managers.RunThread;
 
 /**
  * Serwis pobierający lokalizację użytkownika zarówno gdy aplikacja jest w trakcie działania
@@ -20,8 +20,8 @@ import software.pama.sitandrunandroid.modules.run.managers.LocationListenerManag
 // TODO poprawic zeby nie zatrzymywac aplikacji przy obroceniu ekranu
 public class LocationModule extends Service {
 
-    private LocationListenerManager locationListenerManager;
-    private RunManager runManager;
+    private GpsLocationListener gpsLocationListener;
+    private RunThread runThread;
     private IBinder localBinder;
     private boolean runOver;
     private Handler handler;
@@ -35,19 +35,19 @@ public class LocationModule extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int distanceToRun = intent.getIntExtra(LocationConstants.DISTANCE_TO_RUN_EXTRA, -1);
-        locationListenerManager = new LocationListenerManager(this);
-        runManager = new RunManager(distanceToRun, locationListenerManager, handler);
+        int distanceToRun = intent.getIntExtra(IntentParams.DISTANCE_TO_RUN_PARAM, -1);
+        gpsLocationListener = new GpsLocationListener(this);
+        runThread = new RunThread(distanceToRun, gpsLocationListener, handler);
         Toast.makeText(this, "Location Module started", Toast.LENGTH_LONG).show();
         return START_STICKY;
     }
 
-    public void startLocationListener() {
-        locationListenerManager.startLocationManager();
+    public void startLocationModule() {
+        gpsLocationListener.startLocationListener();
     }
 
     public void startRun() {
-        runManager.run();
+        runThread.run();
         new ModuleManager().run();
     }
 
@@ -55,18 +55,18 @@ public class LocationModule extends Service {
         return runOver;
     }
 
-    public int getFixedSattelitesNumber() {
-        return locationListenerManager.getFixedSattelitesNumber();
+    public int getFixedSatellitesNumber() {
+        return gpsLocationListener.getFixedSatellitesNumber();
     }
 
     public RunResult getCurrentRunResult() {
-        return runManager.getRunResult();
+        return runThread.getRunResult();
     }
 
     @Override
     public void onDestroy() {
         Log.i("STOP_SERVICE", "DONE");
-        locationListenerManager.stopListening();
+        gpsLocationListener.stopListening();
         joinDistanceManager();
         super.onDestroy();
     }
@@ -78,14 +78,14 @@ public class LocationModule extends Service {
 
     private void joinDistanceManager() {
         try {
-            runManager.join();
+            runThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public class LocalBinder extends Binder {
-        public LocationModule getLocationService() {
+        public LocationModule getLocationModule() {
             return LocationModule.this;
         }
     }
@@ -94,10 +94,10 @@ public class LocationModule extends Service {
 
         @Override
         public void run() {
-            Log.d("Location Module", "Is run over? " + runManager.isRunOver());
-            if (runManager.isRunOver()) {
+            Log.d("Location Module", "Is run over? " + runThread.isRunOver());
+            if (runThread.isRunOver()) {
                 try {
-                    runManager.join();
+                    runThread.join();
                     runOver = true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();

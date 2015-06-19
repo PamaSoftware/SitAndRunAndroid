@@ -33,14 +33,14 @@ import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.modules.run.LocationModuleConnector;
+import software.pama.sitandrunandroid.run.RunManager;
 
 public class RunActivity extends Activity {
 
     public static final int FORECAST_SECONDS = 10;
     public static final int SLEEP_SECONDS = 2;
 
-    private LocationModuleConnector locationModuleConnector;
+    private RunManager runManager;
     private TextView txtDifference;
     private TextView txtSattelites;
     private TextView txtDistance;
@@ -72,8 +72,8 @@ public class RunActivity extends Activity {
         txtEnemyTime = (TextView) findViewById(R.id.enemyTime);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
-        locationModuleConnector = new LocationModuleConnector(this, RunDistance.FIVE);
-        locationModuleConnector.prepareModule();
+        runManager = new RunManager(this, RunDistance.FIVE);
+        runManager.prepareModule();
         executor = Executors.newScheduledThreadPool(3);
         scheduleTask(updateSattelites);
         int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
@@ -150,15 +150,15 @@ public class RunActivity extends Activity {
                         new Runnable() {
                             @Override
                             public void run() {
-                                txtSattelites.setText("Sattelites: " + locationModuleConnector.getFixedSattelitesNumber());
+                                txtSattelites.setText("Sattelites: " + runManager.getFixedSatellitesNumber());
                             }
                         });
-                Logger.getLogger("").log(Level.INFO, "Sattelites: " + locationModuleConnector.getFixedSattelitesNumber());
+                Logger.getLogger("").log(Level.INFO, "Sattelites: " + runManager.getFixedSatellitesNumber());
             }
     };
 
     public void startRunService() {
-        locationModuleConnector.startRun();
+        runManager.startRun();
         scheduleTask(updateActivity);
         scheduleTask(updateDifference);
         new GetEnemyResult().execute();
@@ -176,7 +176,7 @@ public class RunActivity extends Activity {
     }
 
     private void stopLocationService() {
-        locationModuleConnector.stopModule();
+        runManager.stopModule();
     }
 
     private Runnable updateDifference = new Runnable() {
@@ -202,8 +202,8 @@ public class RunActivity extends Activity {
         }
 
         private void updateMainInformation() {
-            result = locationModuleConnector.getRunResult();
-            runOver = locationModuleConnector.isRunOver();
+            result = runManager.getRunResult();
+            runOver = runManager.isRunOver();
         }
 
         private void updateUserResult() {
@@ -263,7 +263,7 @@ public class RunActivity extends Activity {
                 while (!runOver) {
                     prevResult = getRunResult(prevResult);
                 }
-                result = locationModuleConnector.getRunResult();
+                result = runManager.getRunResult();
                 getRunResult(prevResult);
             return null;
         }
