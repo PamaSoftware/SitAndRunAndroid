@@ -1,9 +1,17 @@
 package software.pama.sitandrunandroid.activities;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -27,7 +35,9 @@ import software.pama.sitandrunandroid.activities.tasks.AsyncTaskResponse;
 import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 
-public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<Integer> {
+import static android.location.LocationManager.GPS_PROVIDER;
+
+public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<Integer>, LocationListener {
 
     private Button hostForFriendButton;
     private Button joinFriendButton;
@@ -44,6 +54,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     private TextWatcher friendsLoginTextWatcher;
     private Toast preferenceValidationToast;
     private Toast differenceValidationToast;
+    private NetworkStateReceiver networkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +69,11 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         runButton = (Button) findViewById(R.id.runButton);
         preferenceValidationToast = Toast.makeText(this, "Both values must be greater than 500", Toast.LENGTH_SHORT);
         differenceValidationToast = Toast.makeText(this, "Difference must be greater than 100", Toast.LENGTH_SHORT);
+        LocationManager locationManager = (android.location.LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(GPS_PROVIDER, 2000, 0, this);
+        Toast.makeText(this, "GPS and internet connection is required", Toast.LENGTH_SHORT).show();
+        networkReceiver = new NetworkStateReceiver();
+        registerReceiver(networkReceiver, new IntentFilter());
     }
 
     /**
@@ -422,6 +438,48 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
                 }
             }
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Toast.makeText(this, location.toString(), Toast.LENGTH_SHORT).show();
+        if (location.getAccuracy() < 50)
+            runButton.setEnabled(true);
+        else {
+            Toast.makeText(this, "Need better GPS connection", Toast.LENGTH_SHORT);
+            runButton.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        runButton.setEnabled(false);
+    }
+
+    @Override
+    protected void onDestroy() {
+//        int flag = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+//        ComponentName component=new ComponentName(getApplicationContext(), NetworkStateReceiver.class);
+//
+//        getPackageManager().setComponentEnabledSetting(component, flag, PackageManager.DONT_KILL_APP);
+
+//        unregisterReceiver(networkReceiver);
+//        ComponentName receiver = new ComponentName(this, NetworkStateReceiver.class);
+//        PackageManager pm = getPackageManager();
+//        pm.setComponentEnabledSetting(receiver,
+//                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+//                PackageManager.DONT_KILL_APP);
+        super.onDestroy();
     }
 
     @Override
