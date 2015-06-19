@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.activities.modules.run;
+package software.pama.sitandrunandroid.modules.run;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,7 +12,7 @@ import software.pama.sitandrunandroid.modules.run.LocationModule;
 import software.pama.sitandrunandroid.modules.run.extras.LocationConstants;
 
 /**
- * Odpowiedzialna za połączenie i obsługę {@link software.pama.sitandrunandroid.modules.run.LocationModule}.
+ * Odpowiedzialna za połączenie i obsługę {@link LocationModule}.
  * Udostępnia informacje o całkowitym przebytym dystansie przez użytkownika.
  */
 public class LocationModuleConnector {
@@ -28,9 +28,10 @@ public class LocationModuleConnector {
         this.distanceToRun = distanceToRun;
     }
 
-    public void prepareModule() {
+    public LocationModuleConnector prepareModule() {
         overrideServiceConnectionMethods();
         activateLocationService();
+        return this;
     }
 
     public void startRun() {

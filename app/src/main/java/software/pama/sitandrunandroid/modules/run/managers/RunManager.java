@@ -11,6 +11,7 @@ import software.pama.sitandrunandroid.modules.run.helpers.RunTimeCounter;
 
 public class RunManager extends Thread {
 
+    private int i = 0;
     private int distanceToRun;
     private long totalDistance;
     private Location currentLocation;
@@ -21,7 +22,7 @@ public class RunManager extends Thread {
 
     public RunManager(int distanceToRun, LocationListenerManager locationListenerManager, Handler threadHandler) {
 //        this.distanceToRun = distanceToRun;
-        this.distanceToRun = 200;
+        this.distanceToRun = 500;
         this.locationListenerManager = locationListenerManager;
         this.threadHandler = threadHandler;
         this.runTimeCounter = new RunTimeCounter();
@@ -53,7 +54,13 @@ public class RunManager extends Thread {
     }
 
     public RunResult getRunResult() {
-        return new RunResult(totalDistance, runTimeCounter.countRunTimeMs());
+        long totalTime = runTimeCounter.countRunTimeMs();
+
+        // testowo
+        totalDistance += 100;
+        totalTime += (i = i + 1000);
+
+        return new RunResult(totalDistance, totalTime);
     }
 
     public boolean isRunOver() {

@@ -13,7 +13,6 @@ import android.util.Log;
 import static android.location.LocationManager.GPS_PROVIDER;
 
 // TODO przeliczać wynik na czas uśredniając końcówkę biegu
-// TODO w jednym z artykułów było opisane że GSP potrzbeuje bezpośredniego widoku z satelity, AGPS nie potrzebuje
 public class LocationListenerManager implements LocationListener, GpsStatus.Listener {
 
     // zmienić i sprawdzić czy jest niedokładne
@@ -102,6 +101,7 @@ public class LocationListenerManager implements LocationListener, GpsStatus.List
         Log.d(SyncStateContract.Constants.DATA, provider + " \nSTATUS: " + status);
     }
 
+    // TODO wyłączyć ten element jeśli bieg się rozpoczął
     // TODO im później pobieram satelity tym większą niedokładność akceptuję (jeśli sprawdzę że użytkownik biegnie).
     @Override
     public void onGpsStatusChanged(int event) {
