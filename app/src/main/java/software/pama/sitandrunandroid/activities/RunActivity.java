@@ -33,14 +33,14 @@ import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.RunManager;
+import software.pama.sitandrunandroid.run.ServicesConnector;
 
 public class RunActivity extends Activity {
 
     public static final int FORECAST_SECONDS = 10;
     public static final int SLEEP_SECONDS = 2;
 
-    private RunManager runManager;
+    private ServicesConnector servicesConnector;
     private TextView txtDifference;
     private TextView txtSattelites;
     private TextView txtDistance;
@@ -72,8 +72,8 @@ public class RunActivity extends Activity {
         txtEnemyTime = (TextView) findViewById(R.id.enemyTime);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
-        runManager = new RunManager(this, RunDistance.FIVE);
-        runManager.prepareModule();
+        servicesConnector = new ServicesConnector(this, RunDistance.FIVE);
+        servicesConnector.prepareModule();
         executor = Executors.newScheduledThreadPool(3);
         scheduleTask(updateSattelites);
         int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
@@ -150,15 +150,15 @@ public class RunActivity extends Activity {
                         new Runnable() {
                             @Override
                             public void run() {
-                                txtSattelites.setText("Sattelites: " + runManager.getFixedSatellitesNumber());
+                                txtSattelites.setText("Sattelites: " + servicesConnector.getFixedSatellitesNumber());
                             }
                         });
-                Logger.getLogger("").log(Level.INFO, "Sattelites: " + runManager.getFixedSatellitesNumber());
+                Logger.getLogger("").log(Level.INFO, "Sattelites: " + servicesConnector.getFixedSatellitesNumber());
             }
     };
 
     public void startRunService() {
-        runManager.startRun();
+        servicesConnector.startRun();
         scheduleTask(updateActivity);
         scheduleTask(updateDifference);
         new GetEnemyResult().execute();
@@ -176,7 +176,7 @@ public class RunActivity extends Activity {
     }
 
     private void stopLocationService() {
-        runManager.stopModule();
+        servicesConnector.stopModule();
     }
 
     private Runnable updateDifference = new Runnable() {
@@ -202,8 +202,8 @@ public class RunActivity extends Activity {
         }
 
         private void updateMainInformation() {
-            result = runManager.getRunResult();
-            runOver = runManager.isRunOver();
+            result = servicesConnector.getRunResult();
+            runOver = servicesConnector.isRunOver();
         }
 
         private void updateUserResult() {
@@ -263,7 +263,7 @@ public class RunActivity extends Activity {
                 while (!runOver) {
                     prevResult = getRunResult(prevResult);
                 }
-                result = runManager.getRunResult();
+                result = servicesConnector.getRunResult();
                 getRunResult(prevResult);
             return null;
         }

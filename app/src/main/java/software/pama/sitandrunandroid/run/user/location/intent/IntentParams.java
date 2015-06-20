@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.run.location.intent;
+package software.pama.sitandrunandroid.run.user.location.intent;
 
 public class IntentParams {
 

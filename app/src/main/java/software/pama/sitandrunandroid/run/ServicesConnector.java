@@ -8,29 +8,29 @@ import android.os.IBinder;
 
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.location.LocationModule;
-import software.pama.sitandrunandroid.run.location.intent.IntentParams;
-import software.pama.sitandrunandroid.run.steps.StepCounterModule;
+import software.pama.sitandrunandroid.run.user.location.RunService;
+import software.pama.sitandrunandroid.run.user.location.intent.IntentParams;
+import software.pama.sitandrunandroid.run.user.steps.StepCounterService;
 
 /**
- * Odpowiedzialna za połączenie i obsługę {@link LocationModule}.
+ * Odpowiedzialna za połączenie i obsługę {@link RunService}.
  * Udostępnia informacje o całkowitym przebytym dystansie przez użytkownika.
  */
-public class RunManager {
+public class ServicesConnector {
 
     private Context appContext;
-    private LocationModule locationModule;
-    private StepCounterModule stepCounterModule;
+    private RunService runService;
+    private StepCounterService stepCounterService;
     private ServiceConnection locationServiceConnection;
     private boolean locationModuleBounded = false;
     private RunDistance distanceToRun;
 
-    public RunManager(Context appContext, RunDistance distanceToRun) {
+    public ServicesConnector(Context appContext, RunDistance distanceToRun) {
         this.appContext = appContext;
         this.distanceToRun = distanceToRun;
     }
 
-    public RunManager prepareModule() {
+    public ServicesConnector prepareModule() {
         overrideServiceConnectionMethods();
         activateLocationService();
         return this;
@@ -38,22 +38,22 @@ public class RunManager {
 
     public void startRun() {
         if (locationModuleBounded)
-            locationModule.startRun();
+            runService.startRun();
     }
 
     public boolean isRunOver() {
-        return locationModuleBounded && locationModule.isRunOver();
+        return locationModuleBounded && runService.isRunOver();
     }
 
     public RunResult getRunResult() {
-        return locationModuleBounded ? locationModule.getCurrentRunResult() : null;
+        return locationModuleBounded ? runService.getCurrentRunResult() : null;
     }
 
     public void stopModule() {
         if (locationModuleBounded) {
             appContext.unbindService(locationServiceConnection);
             locationModuleBounded = false;
-            locationModule.stopSelf();
+            runService.stopSelf();
         }
     }
 
@@ -64,32 +64,32 @@ public class RunManager {
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 bindWithLocationService(iBinder);
                 locationModuleBounded = true;
-                locationModule.startLocationModule();
+                runService.startLocationModule();
             }
 
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
-                locationModule = null;
+                runService = null;
             }
         };
 
     }
 
     public int getFixedSatellitesNumber() {
-        return locationModuleBounded ? locationModule.getFixedSatellitesNumber() : 0;
+        return locationModuleBounded ? runService.getFixedSatellitesNumber() : 0;
     }
 
     private void activateLocationService() {
-        Intent locationServiceIntent = new Intent(appContext, LocationModule.class);
+        Intent locationServiceIntent = new Intent(appContext, RunService.class);
         locationServiceIntent.putExtra(IntentParams.DISTANCE_TO_RUN_PARAM, distanceToRun.getDistanceInMeters());
         appContext.bindService(locationServiceIntent, locationServiceConnection, Context.BIND_AUTO_CREATE);
         appContext.startService(locationServiceIntent);
     }
 
     private void bindWithLocationService(IBinder iBinder) {
-        if(locationModule == null) {
-            LocationModule.LocalBinder binder = (LocationModule.LocalBinder) iBinder;
-            locationModule = binder.getLocationModule();
+        if(runService == null) {
+            RunService.LocalBinder binder = (RunService.LocalBinder) iBinder;
+            runService = binder.getLocationModule();
         }
     }
 

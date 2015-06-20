@@ -1,6 +1,6 @@
-package software.pama.sitandrunandroid.run.steps;
+package software.pama.sitandrunandroid.run.user.steps;
 
-public class StepCounterModule {
+public class StepCounterService {
 
     private int counter;
 

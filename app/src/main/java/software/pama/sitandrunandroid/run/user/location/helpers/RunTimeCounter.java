@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.run.location.helpers;
+package software.pama.sitandrunandroid.run.user.location.helpers;
 
 public class RunTimeCounter {
 

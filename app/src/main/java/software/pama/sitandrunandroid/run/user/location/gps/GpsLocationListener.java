@@ -1,4 +1,4 @@
-package software.pama.sitandrunandroid.run.location.managers;
+package software.pama.sitandrunandroid.run.user.location.gps;
 
 import android.content.Context;
 import android.location.GpsSatellite;
@@ -28,7 +28,7 @@ public class GpsLocationListener implements LocationListener, GpsStatus.Listener
     private Context appContext;
     private Location currentLocation;
     private LocationManager locationManager;
-    private int fixedSattelitesNumber;
+    private int fixedSatellitesNumber;
     private boolean firstTime = true;
 
     public GpsLocationListener(Context appContext) {
@@ -43,7 +43,7 @@ public class GpsLocationListener implements LocationListener, GpsStatus.Listener
     }
 
     public int getFixedSatellitesNumber() {
-        return fixedSattelitesNumber;
+        return fixedSatellitesNumber;
     }
 
     public Location getCurrentLocation() {
@@ -66,14 +66,14 @@ public class GpsLocationListener implements LocationListener, GpsStatus.Listener
     @Override
     public void onLocationChanged(final Location location) {
         Log.i("GpsLocationListener", "User location changed. New Location: " + location);
-        if (isAccurate(location) && isFarEnough(location)) {
+//        if (isFarEnough(location) && isAccurate(location)) {
             if (firstTime) {
                 // location is fixed and accurate so we can start running
                 locationUpdateDistanceM = INITIAL_LOCATION_UPDATE_M;
                 firstTime = false;
             }
             currentLocation = location;
-        }
+//        }
     }
 
     private boolean isFarEnough(Location location) {
@@ -108,12 +108,12 @@ public class GpsLocationListener implements LocationListener, GpsStatus.Listener
         GpsStatus gpsStatus = locationManager.getGpsStatus(null);
         if (gpsStatus == null)
             return;
-        fixedSattelitesNumber = 0;
+        fixedSatellitesNumber = 0;
         Iterable<GpsSatellite> satellites = gpsStatus.getSatellites();
         for (GpsSatellite satellite : satellites)
             if (satellite.usedInFix())
-                fixedSattelitesNumber++;
-        Log.i("GpsLocationListener", "Sattelites number: " + fixedSattelitesNumber);
+                fixedSatellitesNumber++;
+        Log.i("GpsLocationListener", "Sattelites number: " + fixedSatellitesNumber);
     }
 
     private boolean isAccurate(Location location) {
