@@ -39,7 +39,6 @@ public class RunActivity extends Activity {
 
     public static final int FORECAST_SECONDS = 10;
     public static final int SLEEP_SECONDS = 2;
-
     private RunManager runManager;
     private TextView txtDifference;
     private TextView txtSatellites;
@@ -48,22 +47,31 @@ public class RunActivity extends Activity {
     private TextView txtEnemyDistance;
     private TextView txtEnemyTime;
     private TextView txtRunOver;
-    private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
-    private RunResult result;
-    private boolean runOver = false;
-    private ScheduledExecutorService executor;
     private DateFormat formatter = new SimpleDateFormat("mm:ss:SSS");
+    private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+    private ScheduledExecutorService executor;
+    private boolean runOver = false;
     private EnemyResultTime enemyResultTime;
     private long totalWaitingTime;
     private long previousTime;
     private int enemyDistance;
     private CountDownTimer countDownTimer;
+    private RunResult userResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         setContentView(R.layout.activity_run);
+        setupView();
+        executor = Executors.newScheduledThreadPool(4);
+        runManager = new RunManager(this, RunDistance.FIVE);
+        scheduleTask(updateSattelites);
+        checkHostIfRequired();
+        countDownToStart();
+    }
+
+    private void setupView() {
         txtDifference = (TextView) findViewById(R.id.difference);
         txtSatellites = (TextView) findViewById(R.id.txtSattelites);
         txtDistance = (TextView) findViewById(R.id.txtDistance);
@@ -72,34 +80,37 @@ public class RunActivity extends Activity {
         txtEnemyTime = (TextView) findViewById(R.id.enemyTime);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
-        executor = Executors.newScheduledThreadPool(4);
-        runManager = new RunManager(this, RunDistance.FIVE);
-        scheduleTask(updateSattelites);
-        int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
+    }
+
+    private void checkHostIfRequired() {
         final boolean hasToCheckHost = getIntent().getBooleanExtra(IntentParams.CHECK_HOST, false);
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    Logger.getLogger("").log(Level.INFO, "Checking if host joined");
-                    boolean hostJoined = new CheckIfHostJoined().execute().get();
-                    if (!hostJoined) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                goToLobbyAfterHostDisconnection();
-                            }
-                        });
+        if (hasToCheckHost) {
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        Logger.getLogger("").log(Level.INFO, "Checking if host joined");
+                        boolean hostJoined = new CheckIfHostJoined().execute().get();
+                        if (!hostJoined) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    goToLobbyAfterHostDisconnection();
+                                }
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
                 }
-            }
-        }, 3000);
+            }, 3000);
+        }
+    }
 
+    private void countDownToStart() {
+        int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
         countDownTimer = new CountDownTimer(countdown_seconds * 1000, 100) {
 
             private TextView txtCountdown = ((TextView) findViewById(R.id.countdownText));
@@ -116,7 +127,6 @@ public class RunActivity extends Activity {
             }
         };
         countDownTimer.start();
-
     }
 
     private void goToLobbyAfterHostDisconnection() {
@@ -203,17 +213,17 @@ public class RunActivity extends Activity {
         }
 
         private void updateMainInformation() {
-            result = runManager.getUserResult();
+            userResult = runManager.getUserResult();
             runOver = runManager.isRunOver();
         }
 
         private void updateUserResult() {
-            if (result != null) {
+            if (userResult != null) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        txtDistance.setText(Float.toString(result.getTotalDistance()) + " m");
-                        long totalTime = result.getTotalTime();
+                        txtDistance.setText(Float.toString(userResult.getTotalDistance()) + " m");
+                        long totalTime = userResult.getTotalTime();
                         txtTime.setText(formatter.format(new Date(totalTime)) + " s");
                         if (runOver) {
                             txtRunOver.setText("RunThread over!");
@@ -241,11 +251,11 @@ public class RunActivity extends Activity {
         }
 
         private void updateDifference(final int enemyDistance) {
-            if (result != null) {
+            if (userResult != null) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        int diff = enemyDistance - (int) result.getTotalDistance();
+                        int diff = enemyDistance - (int) userResult.getTotalDistance();
                         String strDiff;
                         if (diff >= 0)
                             strDiff = "+" + diff;
@@ -266,7 +276,7 @@ public class RunActivity extends Activity {
                 while (!runOver) {
                     prevResult = getRunResult(prevResult);
                 }
-                result = runManager.getUserResult();
+                userResult = runManager.getUserResult();
                 getRunResult(prevResult);
             return null;
         }
@@ -277,15 +287,15 @@ public class RunActivity extends Activity {
                 // zapytania co tyle o ile do przodu dostaję wynik przeciwnika
                 while (systemTimeMs - previousTime > FORECAST_SECONDS * 1000 + SLEEP_SECONDS * 1000) {
                     previousTime = systemTimeMs;
-                    if (result != null && result.greaterThan(prevResult)) {
-                        Logger.getAnonymousLogger().log(Level.INFO, "Moj czas " + result.getTotalTime() + " dystans " + result.getTotalDistance());
+                    if (userResult != null && userResult.greaterThan(prevResult)) {
+                        Logger.getAnonymousLogger().log(Level.INFO, "Moj czas " + userResult.getTotalTime() + " dystans " + userResult.getTotalDistance());
                         long timeMs = System.currentTimeMillis();
-                        RunResultPiece enemyResult = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, result);
+                        RunResultPiece enemyResult = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, userResult);
                         long currentTimeMs = System.currentTimeMillis();
                         long diffMs = currentTimeMs - timeMs;
                         enemyResultTime = new EnemyResultTime(enemyResult, currentTimeMs, diffMs);
                         Logger.getAnonymousLogger().log(Level.INFO, "Dystans przeciwnika: " + enemyResult.getDistance());
-                        prevResult = result;
+                        prevResult = userResult;
                     }
                 }
             } catch (IOException e) {

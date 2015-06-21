@@ -45,6 +45,7 @@ public class UserResultManager extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        distanceToRun = intent.getIntExtra(IntentParams.DISTANCE_TO_RUN_PARAM, -1);
+        distanceToRun = 100;
         gpsLocationListener = new GpsLocationListener(this);
         gpsLocationListener.startLocationListener();
         Toast.makeText(this, "GPSLocationListener started", Toast.LENGTH_SHORT).show();
