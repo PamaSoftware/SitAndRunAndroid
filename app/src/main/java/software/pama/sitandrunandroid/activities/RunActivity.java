@@ -33,16 +33,16 @@ import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.ServicesConnector;
+import software.pama.sitandrunandroid.run.NewServicesConnector;
 
 public class RunActivity extends Activity {
 
     public static final int FORECAST_SECONDS = 10;
     public static final int SLEEP_SECONDS = 2;
 
-    private ServicesConnector servicesConnector;
+    private NewServicesConnector servicesConnector;
     private TextView txtDifference;
-    private TextView txtSattelites;
+    private TextView txtSatellites;
     private TextView txtDistance;
     private TextView txtTime;
     private TextView txtEnemyDistance;
@@ -65,16 +65,16 @@ public class RunActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         setContentView(R.layout.activity_run);
         txtDifference = (TextView) findViewById(R.id.difference);
-        txtSattelites = (TextView) findViewById(R.id.txtSattelites);
+        txtSatellites = (TextView) findViewById(R.id.txtSattelites);
         txtDistance = (TextView) findViewById(R.id.txtDistance);
         txtTime = (TextView) findViewById(R.id.txtTime);
         txtEnemyDistance = (TextView) findViewById(R.id.enemyDistance);
         txtEnemyTime = (TextView) findViewById(R.id.enemyTime);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
-        servicesConnector = new ServicesConnector(this, RunDistance.FIVE);
-        servicesConnector.prepareModule();
-        executor = Executors.newScheduledThreadPool(3);
+        executor = Executors.newScheduledThreadPool(4);
+        servicesConnector = new NewServicesConnector(this, RunDistance.FIVE);
+        servicesConnector.activate();
         scheduleTask(updateSattelites);
         int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
         final boolean hasToCheckHost = getIntent().getBooleanExtra(IntentParams.CHECK_HOST, false);
@@ -121,6 +121,7 @@ public class RunActivity extends Activity {
     }
 
     private void goToLobbyAfterHostDisconnection() {
+        // TODO zrobić metodę zamykająca wszystko z tego kodu
         Toast.makeText(this, "Host disconnected...", Toast.LENGTH_SHORT).show();
         countDownTimer.cancel();
         executor.shutdown();
@@ -144,17 +145,18 @@ public class RunActivity extends Activity {
     }
 
     private Runnable updateSattelites = new Runnable() {
-            @Override
-            public void run() {
-                runOnUiThread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                txtSattelites.setText("Sattelites: " + servicesConnector.getFixedSatellitesNumber());
-                            }
-                        });
-                Logger.getLogger("").log(Level.INFO, "Sattelites: " + servicesConnector.getFixedSatellitesNumber());
-            }
+        @Override
+        public void run() {
+            runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        String text = "Sattelites: " + servicesConnector.getSatellitesNumber();
+                        txtSatellites.setText(text);
+//                        Logger.getLogger("").log(Level.INFO, text);
+                    }
+                });
+        }
     };
 
     public void startRunService() {
@@ -182,7 +184,7 @@ public class RunActivity extends Activity {
     private Runnable updateDifference = new Runnable() {
         @Override
         public void run() {
-
+            // TODO?
         }
     };
 
@@ -202,7 +204,7 @@ public class RunActivity extends Activity {
         }
 
         private void updateMainInformation() {
-            result = servicesConnector.getRunResult();
+            result = servicesConnector.getUserResult();
             runOver = servicesConnector.isRunOver();
         }
 
@@ -214,8 +216,10 @@ public class RunActivity extends Activity {
                         txtDistance.setText(Float.toString(result.getTotalDistance()) + " m");
                         long totalTime = result.getTotalTime();
                         txtTime.setText(formatter.format(new Date(totalTime)) + " s");
-                        if (runOver)
-                            txtRunOver.setText("Run over!");
+                        if (runOver) {
+                            txtRunOver.setText("RunThread over!");
+                            executor.shutdown();
+                        }
                     }
                 });
             }
@@ -263,7 +267,7 @@ public class RunActivity extends Activity {
                 while (!runOver) {
                     prevResult = getRunResult(prevResult);
                 }
-                result = servicesConnector.getRunResult();
+                result = servicesConnector.getUserResult();
                 getRunResult(prevResult);
             return null;
         }

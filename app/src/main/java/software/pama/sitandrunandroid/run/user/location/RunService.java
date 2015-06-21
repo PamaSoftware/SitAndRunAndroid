@@ -67,7 +67,7 @@ public class RunService extends Service {
     @Override
     public void onDestroy() {
         Log.i("STOP_SERVICE", "DONE");
-        gpsLocationListener.stopListening();
+        gpsLocationListener.stop();
         joinDistanceManager();
         super.onDestroy();
     }
@@ -139,16 +139,16 @@ public class RunService extends Service {
                 if (currentLocation != null)
                     totalDistance += currentLocation.distanceTo(newLocation);
                 currentLocation = newLocation;
-                runTimeCounter.current();
+                runTimeCounter.step();
                 float edge = (distanceToRun - totalDistance) / (float) distanceToRun;
-                if (edge < 0.05) {
-                    gpsLocationListener.lowerLocationUpdateDistance(0.33f);
-                }
+//                if (edge < 0.05) {
+//                    gpsLocationListener.lowerLocationUpdateDistance(0.33f);
+//                }
     //            totalDistance += new Random().nextInt(10) + 1;
                 Log.d("Finish Counter", "Total distance: " + totalDistance);
                 if (distanceToRun - totalDistance < 0) {
                     runOver = true;
-                    gpsLocationListener.stopListening();
+                    gpsLocationListener.stop();
                     return;
                 }
             }
@@ -156,7 +156,7 @@ public class RunService extends Service {
         }
 
         public RunResult getRunResult() {
-            long totalTime = runTimeCounter.countRunTimeMs();
+            long totalTime = runTimeCounter.totalTime();
 
             // testowo
             totalDistance += 100;

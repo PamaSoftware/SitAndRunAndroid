@@ -345,7 +345,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
             boolean runCreated = false;
             try {
                 runCreated = theIntegrationLayer.hostRunWithFriend(friendsLogin, preferences);
-                Logger.getAnonymousLogger().log(Level.INFO, "Run created");
+                Logger.getAnonymousLogger().log(Level.INFO, "RunThread created");
             } catch (Exception e) {
                 e.printStackTrace();
                 Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);

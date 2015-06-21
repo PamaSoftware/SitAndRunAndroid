@@ -11,7 +11,7 @@ import software.pama.sitandrunandroid.model.RunResult;
 public class TheIntegrationLayerMock implements IntegrationLayer {
 
     public static final String TEST = "TEST";
-    public static final int COUNTDOWN = 10;
+    public static final int COUNTDOWN = 5;
     private int time = 0;
     private int distance = 0;
 

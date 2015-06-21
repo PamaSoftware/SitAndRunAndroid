@@ -2,23 +2,19 @@ package software.pama.sitandrunandroid.run.user.location.helpers;
 
 public class RunTimeCounter {
 
-    private boolean firstTime = true;
     private long beginTimeMs;
     private long stepTimeMs;
 
     public void start() {
-        if (firstTime) {
-            beginTimeMs = System.currentTimeMillis();
-            stepTimeMs = System.currentTimeMillis();
-            firstTime = false;
-        }
-    }
-
-    public void current() {
+        beginTimeMs = System.currentTimeMillis();
         stepTimeMs = System.currentTimeMillis();
     }
 
-    public long countRunTimeMs() {
+    public void step() {
+        stepTimeMs = System.currentTimeMillis();
+    }
+
+    public long totalTime() {
         return stepTimeMs - beginTimeMs;
     }
 

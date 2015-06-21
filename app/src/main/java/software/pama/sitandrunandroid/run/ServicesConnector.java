@@ -21,17 +21,29 @@ public class ServicesConnector {
     private Context appContext;
     private RunService runService;
     private StepCounterService stepCounterService;
-    private ServiceConnection locationServiceConnection;
     private boolean locationModuleBounded = false;
     private RunDistance distanceToRun;
+    private ServiceConnection locationServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            bindWithLocationService(iBinder);
+            locationModuleBounded = true;
+            runService.startLocationModule();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            runService = null;
+        }
+    };
 
     public ServicesConnector(Context appContext, RunDistance distanceToRun) {
         this.appContext = appContext;
         this.distanceToRun = distanceToRun;
     }
 
-    public ServicesConnector prepareModule() {
-        overrideServiceConnectionMethods();
+    public ServicesConnector activate() {
         activateLocationService();
         return this;
     }
@@ -45,7 +57,7 @@ public class ServicesConnector {
         return locationModuleBounded && runService.isRunOver();
     }
 
-    public RunResult getRunResult() {
+    public RunResult getUserResult() {
         return locationModuleBounded ? runService.getCurrentRunResult() : null;
     }
 
@@ -55,28 +67,6 @@ public class ServicesConnector {
             locationModuleBounded = false;
             runService.stopSelf();
         }
-    }
-
-    private void overrideServiceConnectionMethods() {
-        locationServiceConnection = new ServiceConnection() {
-
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-                bindWithLocationService(iBinder);
-                locationModuleBounded = true;
-                runService.startLocationModule();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                runService = null;
-            }
-        };
-
-    }
-
-    public int getFixedSatellitesNumber() {
-        return locationModuleBounded ? runService.getFixedSatellitesNumber() : 0;
     }
 
     private void activateLocationService() {
@@ -91,6 +81,10 @@ public class ServicesConnector {
             RunService.LocalBinder binder = (RunService.LocalBinder) iBinder;
             runService = binder.getLocationModule();
         }
+    }
+
+    public int getSatellitesNumber() {
+        return locationModuleBounded ? runService.getFixedSatellitesNumber() : 0;
     }
 
 }

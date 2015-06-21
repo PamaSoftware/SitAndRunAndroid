@@ -38,6 +38,12 @@
             android:exported="true" >
         </service>
 
+        <service
+            android:name=".run.user.UserResultManager"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
+
         <activity
             android:name=".activities.RunActivity"
             android:label="@string/title_activity_tournament" >
