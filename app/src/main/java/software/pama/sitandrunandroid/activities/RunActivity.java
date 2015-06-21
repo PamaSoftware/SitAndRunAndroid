@@ -33,14 +33,14 @@ import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.NewServicesConnector;
+import software.pama.sitandrunandroid.run.RunManager;
 
 public class RunActivity extends Activity {
 
     public static final int FORECAST_SECONDS = 10;
     public static final int SLEEP_SECONDS = 2;
 
-    private NewServicesConnector servicesConnector;
+    private RunManager runManager;
     private TextView txtDifference;
     private TextView txtSatellites;
     private TextView txtDistance;
@@ -73,8 +73,7 @@ public class RunActivity extends Activity {
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         executor = Executors.newScheduledThreadPool(4);
-        servicesConnector = new NewServicesConnector(this, RunDistance.FIVE);
-        servicesConnector.activate();
+        runManager = new RunManager(this, RunDistance.FIVE);
         scheduleTask(updateSattelites);
         int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
         final boolean hasToCheckHost = getIntent().getBooleanExtra(IntentParams.CHECK_HOST, false);
@@ -126,7 +125,7 @@ public class RunActivity extends Activity {
         countDownTimer.cancel();
         executor.shutdown();
         // po wcisnieciu przycisku 'OK' odpalić aktywność z wyborem przeciwnika, żeby użytkownik wiedział co się dzieje
-        stopLocationService();
+        stopRunManager();
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -151,7 +150,7 @@ public class RunActivity extends Activity {
                 new Runnable() {
                     @Override
                     public void run() {
-                        String text = "Sattelites: " + servicesConnector.getSatellitesNumber();
+                        String text = "Sattelites: " + runManager.getSatellitesNumber();
                         txtSatellites.setText(text);
 //                        Logger.getLogger("").log(Level.INFO, text);
                     }
@@ -160,7 +159,7 @@ public class RunActivity extends Activity {
     };
 
     public void startRunService() {
-        servicesConnector.startRun();
+        runManager.startRun();
         scheduleTask(updateActivity);
         scheduleTask(updateDifference);
         new GetEnemyResult().execute();
@@ -173,12 +172,12 @@ public class RunActivity extends Activity {
     @Override
     protected void onDestroy() {
         executor.shutdown();
-        stopLocationService();
+        stopRunManager();
         super.onDestroy();
     }
 
-    private void stopLocationService() {
-        servicesConnector.stopModule();
+    private void stopRunManager() {
+        runManager.stopModule();
     }
 
     private Runnable updateDifference = new Runnable() {
@@ -204,8 +203,8 @@ public class RunActivity extends Activity {
         }
 
         private void updateMainInformation() {
-            result = servicesConnector.getUserResult();
-            runOver = servicesConnector.isRunOver();
+            result = runManager.getUserResult();
+            runOver = runManager.isRunOver();
         }
 
         private void updateUserResult() {
@@ -267,7 +266,7 @@ public class RunActivity extends Activity {
                 while (!runOver) {
                     prevResult = getRunResult(prevResult);
                 }
-                result = servicesConnector.getUserResult();
+                result = runManager.getUserResult();
                 getRunResult(prevResult);
             return null;
         }
