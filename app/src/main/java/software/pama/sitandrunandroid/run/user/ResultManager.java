@@ -71,7 +71,6 @@ public class ResultManager extends Service {
         new GetEnemyResult().execute();
     }
 
-    // To działa dobrze - w ciągu sekundy 10 kolejnych metrów
     public RunResult getUserResult() {
         int resultsSize = userResults.size();
         if (resultsSize == 0) {
@@ -94,7 +93,6 @@ public class ResultManager extends Service {
         }
     }
 
-    // TODO Testy tego elementu
     public RunResult getEnemyResult() {
         // po stronie aktywnosci wyswietlac wynik ci�g�y
         int resultsSize = enemyResults.size();
