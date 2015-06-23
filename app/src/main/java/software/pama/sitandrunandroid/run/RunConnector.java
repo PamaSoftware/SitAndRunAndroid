@@ -8,56 +8,57 @@ import android.os.IBinder;
 
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.user.UserResultManager;
+import software.pama.sitandrunandroid.run.user.ResultManager;
 import software.pama.sitandrunandroid.run.user.location.intent.IntentParams;
 
-public class RunManager {
+public class RunConnector {
 
     private Context context;
     private RunDistance runDistance;
-    private UserResultManager userResultManager;
+    private ResultManager resultManager;
     private boolean userResultManagerBounded = false;
     private ServiceConnection userResultManagerConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            if(userResultManager == null) {
-                UserResultManager.LocalBinder binder = (UserResultManager.LocalBinder) iBinder;
-                userResultManager = binder.getUserResultManager();
+            if(resultManager == null) {
+                ResultManager.LocalBinder binder = (ResultManager.LocalBinder) iBinder;
+                resultManager = binder.getUserResultManager();
             }
             userResultManagerBounded = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            userResultManager = null;
+            resultManager = null;
         }
     };
 
-    public RunManager(Context context, RunDistance distanceToRun) {
+    public RunConnector(Context context, RunDistance distanceToRun) {
         this.context = context;
         this.runDistance = distanceToRun;
         activateLocationService();
     }
     public void startRun() {
         if (userResultManagerBounded)
-            userResultManager.startRun();
+            resultManager.startRun();
     }
 
-    public RunResult getUserResult() {
+    public RunResult getUserResultForNow() {
         if (userResultManagerBounded)
-            return userResultManager.getCurrentResult();
+            return resultManager.getUserResult();
         return null;
     }
 
-    public RunResult getEnemyResult() {
-
+    public RunResult getEnemyResultForNow() {
+        if (userResultManagerBounded)
+            return resultManager.getEnemyResult();
         return null;
     }
 
     public boolean isRunOver() {
         if (userResultManagerBounded)
-            return userResultManager.isRunOver();
+            return resultManager.isRunOver();
         return false;
     }
 
@@ -72,7 +73,7 @@ public class RunManager {
     }
 
     private void activateLocationService() {
-        Intent locationServiceIntent = new Intent(context, UserResultManager.class);
+        Intent locationServiceIntent = new Intent(context, ResultManager.class);
         locationServiceIntent.putExtra(IntentParams.DISTANCE_TO_RUN_PARAM, runDistance.getDistanceInMeters());
         context.bindService(locationServiceIntent, userResultManagerConnection, Context.BIND_AUTO_CREATE);
         context.startService(locationServiceIntent);

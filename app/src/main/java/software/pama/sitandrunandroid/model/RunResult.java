@@ -2,11 +2,10 @@ package software.pama.sitandrunandroid.model;
 
 public class RunResult {
 
-    private long totalDistance;
+    private float totalDistance;
     private long totalTime;
-    // dodaæ tu dok³adnoœæ poprzedniego pomiaru
 
-    public RunResult(long totalDistance, long totalTime) {
+    public RunResult(float totalDistance, long totalTime) {
         this.totalDistance = totalDistance;
         this.totalTime = totalTime;
     }
@@ -32,7 +31,7 @@ public class RunResult {
     public boolean greaterThan(RunResult other) {
         if (other == null)
             return true;
-        return totalDistance > other.getTotalDistance() && totalTime > other.getTotalTime();
+        return totalDistance > other.getTotalDistance() || totalTime > other.totalTime;
     }
 
 }

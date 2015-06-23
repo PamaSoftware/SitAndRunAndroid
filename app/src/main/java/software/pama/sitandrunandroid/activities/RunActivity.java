@@ -11,8 +11,6 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -33,13 +31,15 @@ import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.RunManager;
+import software.pama.sitandrunandroid.run.RunConnector;
+import software.pama.sitandrunandroid.run.TheRunTimer;
 
 public class RunActivity extends Activity {
 
-    public static final int FORECAST_SECONDS = 10;
-    public static final int SLEEP_SECONDS = 2;
-    private RunManager runManager;
+//    public static final DecimalFormat TIMER_DECIMAL_FORMAT = new DecimalFormat("##.00");
+    public static final DecimalFormat TIMER_DECIMAL_FORMAT = new DecimalFormat("##");
+    private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+    private RunConnector runConnector;
     private TextView txtDifference;
     private TextView txtSatellites;
     private TextView txtDistance;
@@ -47,16 +47,14 @@ public class RunActivity extends Activity {
     private TextView txtEnemyDistance;
     private TextView txtEnemyTime;
     private TextView txtRunOver;
+    private TextView txtCountdown;
     private DateFormat formatter = new SimpleDateFormat("mm:ss:SSS");
-    private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
     private ScheduledExecutorService executor;
     private boolean runOver = false;
-    private EnemyResultTime enemyResultTime;
-    private long totalWaitingTime;
-    private long previousTime;
-    private int enemyDistance;
     private CountDownTimer countDownTimer;
-    private RunResult userResult;
+    private RunResult userResultForNow;
+    private RunResult enemyResultForNow;
+    private TheRunTimer theRunTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +63,9 @@ public class RunActivity extends Activity {
         setContentView(R.layout.activity_run);
         setupView();
         executor = Executors.newScheduledThreadPool(4);
-        runManager = new RunManager(this, RunDistance.FIVE);
-        scheduleTask(updateSattelites);
+        runConnector = new RunConnector(this, RunDistance.FIVE);
+        theRunTimer = TheRunTimer.getInstance();
+        scheduleTask(updateSatellites);
         checkHostIfRequired();
         countDownToStart();
     }
@@ -80,6 +79,7 @@ public class RunActivity extends Activity {
         txtEnemyTime = (TextView) findViewById(R.id.enemyTime);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
         txtRunOver = (TextView) findViewById(R.id.txtRunOver);
+        txtCountdown = ((TextView) findViewById(R.id.countdownText));
     }
 
     private void checkHostIfRequired() {
@@ -113,16 +113,13 @@ public class RunActivity extends Activity {
         int countdown_seconds = getIntent().getIntExtra(IntentParams.COUNTDOWN_SECONDS, -1);
         countDownTimer = new CountDownTimer(countdown_seconds * 1000, 100) {
 
-            private TextView txtCountdown = ((TextView) findViewById(R.id.countdownText));
-
             public void onTick(long millisUntilFinished) {
-                String result = new DecimalFormat("##.00").format(millisUntilFinished / 1000.0);
+                String result = TIMER_DECIMAL_FORMAT.format(millisUntilFinished / 1000.0);
                 txtCountdown.setText("Start in: " + result);
             }
 
             public void onFinish() {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                txtCountdown.setText("RUN FOREST!");
                 startRunService();
             }
         };
@@ -142,41 +139,41 @@ public class RunActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        pickEnemy();
+                        srartEnemyPickerActivity();
                     }
                 });
             }
         }, 3000);
     }
 
-    private void pickEnemy() {
+    private void srartEnemyPickerActivity() {
         startActivity(new Intent(this, EnemyPickerActivity.class));
     }
 
-    private Runnable updateSattelites = new Runnable() {
+    private Runnable updateSatellites = new Runnable() {
         @Override
         public void run() {
             runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        String text = "Sattelites: " + runManager.getSatellitesNumber();
-                        txtSatellites.setText(text);
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            String text = "Sattelites: " + runConnector.getSatellitesNumber();
+                            txtSatellites.setText(text);
 //                        Logger.getLogger("").log(Level.INFO, text);
-                    }
-                });
+                        }
+                    });
         }
     };
 
     public void startRunService() {
-        runManager.startRun();
-        scheduleTask(updateActivity);
+        runConnector.startRun();
+        scheduleTask(updateAllData);
         scheduleTask(updateDifference);
-        new GetEnemyResult().execute();
+        theRunTimer.start();
     }
 
     private void scheduleTask(Runnable updateLocation) {
-        executor.scheduleAtFixedRate(updateLocation, 0, SLEEP_SECONDS, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(updateLocation, 0, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -187,7 +184,7 @@ public class RunActivity extends Activity {
     }
 
     private void stopRunManager() {
-        runManager.stopModule();
+        runConnector.stopModule();
     }
 
     private Runnable updateDifference = new Runnable() {
@@ -197,35 +194,30 @@ public class RunActivity extends Activity {
         }
     };
 
-    private Runnable updateActivity = new Runnable() {
+    private Runnable updateAllData = new Runnable() {
 
         @Override
         public void run() {
             updateMainInformation();
             updateUserResult();
-            // jeśli minęły dwie sekundy to update przeciwnika bo to jego prawdziwy czas
-            if (enemyResultTime != null) {
-                // update difference co równy czas, ale update wyniku nie 
-                updateEnemyResult(enemyResultTime.enemyResult);
-                updateDifference(enemyDistance);
-            }
-
+            updateEnemyResult();
         }
 
         private void updateMainInformation() {
-            userResult = runManager.getUserResult();
-            runOver = runManager.isRunOver();
+            userResultForNow = runConnector.getUserResultForNow();
+            enemyResultForNow = runConnector.getEnemyResultForNow();
         }
 
         private void updateUserResult() {
-            if (userResult != null) {
+            if (userResultForNow != null) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        txtDistance.setText(Float.toString(userResult.getTotalDistance()) + " m");
-                        long totalTime = userResult.getTotalTime();
-                        txtTime.setText(formatter.format(new Date(totalTime)) + " s");
-                        if (runOver) {
+                        txtDistance.setText(TIMER_DECIMAL_FORMAT.format(userResultForNow.getTotalDistance()) + " m");
+//                        txtTime.setText(formatter.format(new Date(userResultForNow.getTotalTime())) + " s");
+                        // testowo
+                        txtCountdown.setText(formatter.format(new Date(theRunTimer.getRunDuration())));
+                        if (runConnector.isRunOver()) {
                             txtRunOver.setText("RunThread over!");
                             executor.shutdown();
                         }
@@ -234,77 +226,34 @@ public class RunActivity extends Activity {
             }
         }
 
-        private void updateEnemyResult(final RunResultPiece enemyResult) {
-            long timePassedMs = System.currentTimeMillis() - enemyResultTime.systemTimeMs;
-            totalWaitingTime = enemyResultTime.operationRunningTimeMs + timePassedMs;
-            if (totalWaitingTime > FORECAST_SECONDS * 1000) {
-                enemyDistance = enemyResultTime.enemyResult.getDistance();
-                // potem zmienić na wspólny czas, ale dopiero jak się okaże że działa
+        private void updateEnemyResult() {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        txtEnemyDistance.setText(Float.toString(enemyResult.getDistance()) + " m");
-                        txtEnemyTime.setText(formatter.format(new Date(enemyResult.getTime() * 1000)) + " s");
+                        txtEnemyDistance.setText(TIMER_DECIMAL_FORMAT.format(enemyResultForNow.getTotalDistance()) + " m");
+//                        txtEnemyTime.setText(formatter.format(new Date(enemyResultForNow.getTotalTime())) + " s");
                     }
                 });
-            }
+//            }
         }
 
-        private void updateDifference(final int enemyDistance) {
-            if (userResult != null) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int diff = enemyDistance - (int) userResult.getTotalDistance();
-                        String strDiff;
-                        if (diff >= 0)
-                            strDiff = "+" + diff;
-                        else
-                            strDiff = diff + "";
-                        txtDifference.setText(strDiff);
-                    }
-                });
-            }
-        }
+//        private void updateDifference(final int enemyDistance) {
+//            if (userResultForNow != null) {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        int diff = enemyDistance - (int) userResultForNow.getTotalDistance();
+//                        String strDiff;
+//                        if (diff >= 0)
+//                            strDiff = "+" + diff;
+//                        else
+//                            strDiff = diff + "";
+//                        txtDifference.setText(strDiff);
+//                    }
+//                });
+//            }
+//        }
     };
-
-    private class GetEnemyResult extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-                RunResult prevResult = null;
-                while (!runOver) {
-                    prevResult = getRunResult(prevResult);
-                }
-                userResult = runManager.getUserResult();
-                getRunResult(prevResult);
-            return null;
-        }
-
-        private RunResult getRunResult(RunResult prevResult) {
-            try {
-                long systemTimeMs = System.currentTimeMillis();
-                // zapytania co tyle o ile do przodu dostaję wynik przeciwnika
-                while (systemTimeMs - previousTime > FORECAST_SECONDS * 1000 + SLEEP_SECONDS * 1000) {
-                    previousTime = systemTimeMs;
-                    if (userResult != null && userResult.greaterThan(prevResult)) {
-                        Logger.getAnonymousLogger().log(Level.INFO, "Moj czas " + userResult.getTotalTime() + " dystans " + userResult.getTotalDistance());
-                        long timeMs = System.currentTimeMillis();
-                        RunResultPiece enemyResult = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, userResult);
-                        long currentTimeMs = System.currentTimeMillis();
-                        long diffMs = currentTimeMs - timeMs;
-                        enemyResultTime = new EnemyResultTime(enemyResult, currentTimeMs, diffMs);
-                        Logger.getAnonymousLogger().log(Level.INFO, "Dystans przeciwnika: " + enemyResult.getDistance());
-                        prevResult = userResult;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return prevResult;
-        }
-
-    }
 
     private class CheckIfHostJoined extends AsyncTask<Void, Void, Boolean> {
 
@@ -339,16 +288,4 @@ public class RunActivity extends Activity {
         return true;
     }
 
-    private class EnemyResultTime {
-
-        public final RunResultPiece enemyResult;
-        public final long systemTimeMs;
-        public final long operationRunningTimeMs;
-
-        public EnemyResultTime(RunResultPiece enemyResult, long systemTimeMs, long operationRunningTimeMs) {
-            this.enemyResult = enemyResult;
-            this.systemTimeMs = systemTimeMs;
-            this.operationRunningTimeMs = operationRunningTimeMs;
-        }
-    }
 }

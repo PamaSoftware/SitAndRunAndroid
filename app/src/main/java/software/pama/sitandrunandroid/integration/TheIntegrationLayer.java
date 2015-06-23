@@ -73,9 +73,10 @@ public class TheIntegrationLayer implements IntegrationLayer {
 
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
+        // zrobiæ w klasie RunResult metodê toRunResultPiece
         RunResultPiece runInfoPiece = new RunResultPiece();
         runInfoPiece.setDistance((int) myResult.getTotalDistance());
-        runInfoPiece.setTime((int) myResult.getTotalTime()/1000);
+        runInfoPiece.setTime((int)myResult.getTotalTime()/1000);
         com.appspot.formidable_code_826.sitAndRunApi.model.RunResult runResult =
                 new com.appspot.formidable_code_826.sitAndRunApi.model.RunResult().setResults(
                 Collections.singletonList(runInfoPiece));

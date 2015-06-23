@@ -13,7 +13,7 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     public static final String TEST = "TEST";
     public static final int COUNTDOWN = 5;
     private int time = 0;
-    private int distance = 0;
+    private int distance = 10;
 
     private TheIntegrationLayerMock() {}
 
@@ -68,7 +68,7 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
         distance += 10;
-        time += 3;
+        time += 1;
         return new RunResultPiece().setDistance(distance).setTime(time);
     }
 
