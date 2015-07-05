@@ -3,19 +3,23 @@ package software.pama.sitandrunandroid.model;
 public class RunResult {
 
     private float totalDistance;
-    private long totalTime;
+    private long totalTimeMillis;
 
-    public RunResult(float totalDistance, long totalTime) {
+    public RunResult(float totalDistance, long totalTimeMillis) {
         this.totalDistance = totalDistance;
-        this.totalTime = totalTime;
+        this.totalTimeMillis = totalTimeMillis;
     }
 
     public float getTotalDistance() {
         return totalDistance;
     }
 
-    public long getTotalTime() {
-        return totalTime;
+    public long getTotalTimeMillis() {
+        return totalTimeMillis;
+    }
+
+    public long getTotalTimeSeconds() {
+        return totalTimeMillis/1000;
     }
 
     @Override
@@ -25,13 +29,13 @@ public class RunResult {
         if (obj == null || obj.getClass() != this.getClass())
             return false;
         RunResult other = (RunResult) obj;
-        return totalDistance == other.totalDistance && totalTime == other.totalTime;
+        return totalDistance == other.totalDistance && totalTimeMillis == other.totalTimeMillis;
     }
 
     public boolean greaterThan(RunResult other) {
         if (other == null)
             return true;
-        return totalDistance > other.getTotalDistance() || totalTime > other.totalTime;
+        return totalDistance > other.getTotalDistance() || totalTimeMillis > other.totalTimeMillis;
     }
 
 }

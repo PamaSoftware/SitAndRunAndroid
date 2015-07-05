@@ -9,6 +9,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
@@ -22,6 +25,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -33,6 +37,7 @@ import software.pama.sitandrunandroid.R;
 import software.pama.sitandrunandroid.activities.helpers.IntentParams;
 import software.pama.sitandrunandroid.activities.tasks.AsyncTaskResponse;
 import software.pama.sitandrunandroid.integration.IntegrationLayer;
+import software.pama.sitandrunandroid.integration.TheIntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 
 import static android.location.LocationManager.GPS_PROVIDER;
@@ -61,6 +66,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enemy_picker);
         theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+//        theIntegrationLayer = TheIntegrationLayer.getInstance();
         hostForFriendButton = (Button) findViewById(R.id.hostForFriendButton);
         joinFriendButton = (Button) findViewById(R.id.joinFriendButton);
         aspirationEditText = (EditText) findViewById(R.id.desiredDistance);
@@ -71,9 +77,20 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         differenceValidationToast = Toast.makeText(this, "Difference must be greater than 100", Toast.LENGTH_SHORT);
         LocationManager locationManager = (android.location.LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(GPS_PROVIDER, 2000, 0, this);
-        Toast.makeText(this, "GPS and internet connection is required", Toast.LENGTH_SHORT).show();
-        networkReceiver = new NetworkStateReceiver();
-        registerReceiver(networkReceiver, new IntentFilter());
+//        Toast.makeText(this, "GPS and internet connection is required", Toast.LENGTH_SHORT).show();
+//        networkReceiver = new NetworkStateReceiver();
+//        registerReceiver(networkReceiver, new IntentFilter());
+        // sprawdzic czy jest GPS i czy jest internet, dodac jakiegos sluchacza, jesli internet jest wylaczony
+        // to wtedy dac info i disable przycisk biegu
+        if (isOnline()) {
+            Toast.makeText(this, "Internet is connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     /**
@@ -311,8 +328,11 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         @Override
         protected Integer doInBackground(Void... params) {
             try {
-                int countdown = theIntegrationLayer.startRunWithRandom(preferences);
+                RunStartInfo runStartInfo = theIntegrationLayer.startRunWithRandom(preferences);
+                int countdown = runStartInfo.getTime();
+                int distance = runStartInfo.getDistance();
                 Logger.getAnonymousLogger().log(Level.INFO, "Gotowy do rywalizacji, odliczam " + countdown + " sekund");
+                // przekazac klase, potem w intent przekazac parametry, potem wykorzysac parametry do uruchomienia biegu
                 return countdown;
             } catch (Exception e) {
                 e.printStackTrace();

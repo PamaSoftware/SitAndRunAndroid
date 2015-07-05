@@ -3,6 +3,7 @@ package software.pama.sitandrunandroid.integration;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 
 import java.io.IOException;
 
@@ -19,7 +20,7 @@ public interface IntegrationLayer {
 
     boolean deleteAccount() throws IOException;
 
-    int startRunWithRandom(Preferences preferences) throws IOException;
+    RunStartInfo startRunWithRandom(Preferences preferences) throws IOException;
 
     int joinFriend(Preferences preferences) throws IOException;
 

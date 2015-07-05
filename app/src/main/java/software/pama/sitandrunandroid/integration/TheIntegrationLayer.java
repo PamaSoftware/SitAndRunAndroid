@@ -4,6 +4,7 @@ import com.appspot.formidable_code_826.sitAndRunApi.SitAndRunApi;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import java.io.IOException;
@@ -47,13 +48,14 @@ public class TheIntegrationLayer implements IntegrationLayer {
     }
 
     @Override
-    public int startRunWithRandom(Preferences preferences) throws IOException {
-         return endpointAPI.startRunWithRandom(preferences).execute().getResult();
+    public RunStartInfo startRunWithRandom(Preferences preferences) throws IOException {
+         return endpointAPI.startRunWithRandom(preferences).execute();
     }
 
     @Override
     public int joinFriend(Preferences preferences) throws IOException {
-        return endpointAPI.joinRunWithFriend(preferences).execute().getResult();
+//        return endpointAPI.joinRunWithFriend(preferences).execute().getResult();
+        return -1;
     }
 
     @Override
@@ -63,23 +65,25 @@ public class TheIntegrationLayer implements IntegrationLayer {
 
     @Override
     public int startRunWithFriend(Preferences preferences) throws IOException {
-        return endpointAPI.startRunWithFriend(preferences).execute().getResult();
+//        return endpointAPI.startRunWithFriend(preferences).execute().getResult();
+        return -1;
     }
 
     @Override
     public boolean checkIfHostAlive() throws IOException {
-        return endpointAPI.checkIfHostAlive().execute().getResult();
+//        return endpointAPI.checkIfHostAlive().execute().getResult();
+        return false;
     }
 
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
-        // zrobiæ w klasie RunResult metodê toRunResultPiece
+        // zrobipæ w klasie RunResult metodê toRunResultPiece
         RunResultPiece runInfoPiece = new RunResultPiece();
         runInfoPiece.setDistance((int) myResult.getTotalDistance());
-        runInfoPiece.setTime((int)myResult.getTotalTime()/1000);
+        runInfoPiece.setTime((int)myResult.getTotalTimeMillis()/1000);
         com.appspot.formidable_code_826.sitAndRunApi.model.RunResult runResult =
-                new com.appspot.formidable_code_826.sitAndRunApi.model.RunResult().setResults(
-                Collections.singletonList(runInfoPiece));
+            new com.appspot.formidable_code_826.sitAndRunApi.model.RunResult().setResults(
+            Collections.singletonList(runInfoPiece));
         return endpointAPI.currentRunState(forecast, runResult).execute();
     }
 

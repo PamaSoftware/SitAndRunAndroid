@@ -3,6 +3,7 @@ package software.pama.sitandrunandroid.integration;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 
 import java.io.IOException;
 
@@ -11,7 +12,7 @@ import software.pama.sitandrunandroid.model.RunResult;
 public class TheIntegrationLayerMock implements IntegrationLayer {
 
     public static final String TEST = "TEST";
-    public static final int COUNTDOWN = 5;
+    public static final int COUNTDOWN = 3;
     private int time = 0;
     private int distance = 10;
 
@@ -41,8 +42,8 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     }
 
     @Override
-    public int startRunWithRandom(Preferences preferences) throws IOException {
-        return COUNTDOWN;
+    public RunStartInfo startRunWithRandom(Preferences preferences) throws IOException {
+        return new RunStartInfo().setDistance(100).setTime(3);
     }
 
     @Override
@@ -67,7 +68,7 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
-        distance += 10;
+        distance += 5;
         time += 1;
         return new RunResultPiece().setDistance(distance).setTime(time);
     }

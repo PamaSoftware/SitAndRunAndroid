@@ -13,6 +13,7 @@ import software.pama.sitandrunandroid.run.user.location.intent.IntentParams;
 
 public class RunConnector {
 
+    public static final RunResult EMPTY_RESULT = new RunResult(0, 0);
     private Context context;
     private RunDistance runDistance;
     private ResultManager resultManager;
@@ -47,19 +48,25 @@ public class RunConnector {
     public RunResult getUserResultForNow() {
         if (userResultManagerBounded)
             return resultManager.getUserResult();
-        return null;
+        return EMPTY_RESULT;
     }
 
     public RunResult getEnemyResultForNow() {
         if (userResultManagerBounded)
             return resultManager.getEnemyResult();
-        return null;
+        return EMPTY_RESULT;
     }
 
-    public boolean isRunOver() {
+    public long getRunTime() {
         if (userResultManagerBounded)
-            return resultManager.isRunOver();
-        return false;
+            return resultManager.getRunTime();
+        return 0;
+    }
+
+    public RunFinish getRunFinish() {
+        if (userResultManagerBounded)
+            return resultManager.getRunFinish();
+        return new RunFinish();
     }
 
     public int getSatellitesNumber() {
@@ -68,8 +75,10 @@ public class RunConnector {
     }
 
     public void stopModule() {
-        if (userResultManagerBounded)
+        if (userResultManagerBounded) {
+            resultManager.stopRun();
             context.unbindService(userResultManagerConnection);
+        }
     }
 
     private void activateLocationService() {

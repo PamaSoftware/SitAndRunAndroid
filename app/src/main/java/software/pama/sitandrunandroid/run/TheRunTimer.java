@@ -2,7 +2,7 @@ package software.pama.sitandrunandroid.run;
 
 public class TheRunTimer {
 
-    private long runTimeStart;
+    private long runTimeStartSystemMillis;
 
     private TheRunTimer() {}
 
@@ -15,10 +15,15 @@ public class TheRunTimer {
     }
 
     public void start() {
-        runTimeStart = System.currentTimeMillis();
+        runTimeStartSystemMillis = System.currentTimeMillis();
     }
 
-    public long getRunDuration() {
-        return System.currentTimeMillis() - runTimeStart;
+    public long getRunDurationMillis() {
+        return System.currentTimeMillis() - runTimeStartSystemMillis;
     }
+
+    public long getRunDurationSeconds() {
+        return (System.currentTimeMillis() - runTimeStartSystemMillis)/1000;
+    }
+
 }

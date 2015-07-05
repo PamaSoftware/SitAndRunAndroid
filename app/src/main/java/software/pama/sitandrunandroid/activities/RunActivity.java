@@ -2,6 +2,8 @@ package software.pama.sitandrunandroid.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -32,14 +34,22 @@ import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunDistance;
 import software.pama.sitandrunandroid.model.RunResult;
 import software.pama.sitandrunandroid.run.RunConnector;
-import software.pama.sitandrunandroid.run.TheRunTimer;
+import software.pama.sitandrunandroid.run.RunFinish;
 
 public class RunActivity extends Activity {
 
 //    public static final DecimalFormat TIMER_DECIMAL_FORMAT = new DecimalFormat("##.00");
-    public static final DecimalFormat TIMER_DECIMAL_FORMAT = new DecimalFormat("##");
+    private static final DecimalFormat TIMER_DECIMAL_FORMAT = new DecimalFormat("##");
+    private static final DecimalFormat DISTANCE_DECIMAL_FORMAT = new DecimalFormat("##");
+    private static final DateFormat TIME_FORMATTER = new SimpleDateFormat("mm:ss:SSS");
     private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+    private ScheduledExecutorService executor;
     private RunConnector runConnector;
+    private RunResult userResultForNow;
+    private RunResult enemyResultForNow;
+    private RunFinish runFinish;
+    private long runTime;
+    private CountDownTimer countDownTimer;
     private TextView txtDifference;
     private TextView txtSatellites;
     private TextView txtDistance;
@@ -48,13 +58,7 @@ public class RunActivity extends Activity {
     private TextView txtEnemyTime;
     private TextView txtRunOver;
     private TextView txtCountdown;
-    private DateFormat formatter = new SimpleDateFormat("mm:ss:SSS");
-    private ScheduledExecutorService executor;
-    private boolean runOver = false;
-    private CountDownTimer countDownTimer;
-    private RunResult userResultForNow;
-    private RunResult enemyResultForNow;
-    private TheRunTimer theRunTimer;
+    private MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +68,13 @@ public class RunActivity extends Activity {
         setupView();
         executor = Executors.newScheduledThreadPool(4);
         runConnector = new RunConnector(this, RunDistance.FIVE);
-        theRunTimer = TheRunTimer.getInstance();
+        runFinish = new RunFinish();
+        userResultForNow = new RunResult(0, 0);
+        enemyResultForNow = new RunResult(0, 0);
         scheduleTask(updateSatellites);
         checkHostIfRequired();
         countDownToStart();
+        mp = MediaPlayer.create(getApplicationContext(), R.raw.dancer);
     }
 
     private void setupView() {
@@ -132,7 +139,7 @@ public class RunActivity extends Activity {
         countDownTimer.cancel();
         executor.shutdown();
         // po wcisnieciu przycisku 'OK' odpalić aktywność z wyborem przeciwnika, żeby użytkownik wiedział co się dzieje
-        stopRunManager();
+        stopRun();
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -168,8 +175,6 @@ public class RunActivity extends Activity {
     public void startRunService() {
         runConnector.startRun();
         scheduleTask(updateAllData);
-        scheduleTask(updateDifference);
-        theRunTimer.start();
     }
 
     private void scheduleTask(Runnable updateLocation) {
@@ -178,81 +183,88 @@ public class RunActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        executor.shutdown();
-        stopRunManager();
+        stopRun();
         super.onDestroy();
     }
 
-    private void stopRunManager() {
+    private void stopRun() {
+        executor.shutdown();
         runConnector.stopModule();
     }
-
-    private Runnable updateDifference = new Runnable() {
-        @Override
-        public void run() {
-            // TODO?
-        }
-    };
 
     private Runnable updateAllData = new Runnable() {
 
         @Override
         public void run() {
             updateMainInformation();
-            updateUserResult();
-            updateEnemyResult();
+            showUserResult();
+            showEnemyResult();
+            updateDifference();
+            checkFinish();
         }
 
         private void updateMainInformation() {
+            runFinish = runConnector.getRunFinish();
+            runTime = runConnector.getRunTime();
             userResultForNow = runConnector.getUserResultForNow();
             enemyResultForNow = runConnector.getEnemyResultForNow();
         }
 
-        private void updateUserResult() {
+        private void showUserResult() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    txtDistance.setText(DISTANCE_DECIMAL_FORMAT.format(userResultForNow.getTotalDistance()) + " m");
+                    txtCountdown.setText(TIME_FORMATTER.format(new Date(runTime)));
+//                    Logger.getLogger("").log(Level.INFO, "Showing user result " + userResultForNow.getTotalDistance());
+                }
+            });
+        }
+
+        private void showEnemyResult() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    txtEnemyDistance.setText(DISTANCE_DECIMAL_FORMAT.format(enemyResultForNow.getTotalDistance()) + " m");
+//                            txtEnemyTime.setText(TIME_FORMATTER.format(new Date(enemyResultForNow.getTotalTimeMillis())) + " s");
+                    Logger.getLogger("").log(Level.INFO, "Showing enemy result " + enemyResultForNow.getTotalDistance());
+                }
+            });
+        }
+
+        private void checkFinish() {
+            if (runFinish.isRunOver()) {
+                executor.shutdown();
+                // wyswietlic buttona i jesli ktos wcisnie go, to jest przejscie do ostatniego ekranu
+                Logger.getLogger("").log(Level.INFO, "Run over, shutting down executor");
+            }
+        }
+
+        private void updateDifference() {
             if (userResultForNow != null) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        txtDistance.setText(TIMER_DECIMAL_FORMAT.format(userResultForNow.getTotalDistance()) + " m");
-//                        txtTime.setText(formatter.format(new Date(userResultForNow.getTotalTime())) + " s");
-                        // testowo
-                        txtCountdown.setText(formatter.format(new Date(theRunTimer.getRunDuration())));
-                        if (runConnector.isRunOver()) {
-                            txtRunOver.setText("RunThread over!");
-                            executor.shutdown();
+                        float diff = enemyResultForNow.getTotalDistance() - userResultForNow.getTotalDistance();
+                        String diffAsString = DISTANCE_DECIMAL_FORMAT.format(diff);
+                        if (diff >= 0) {
+                            diffAsString = "+" + diffAsString;
+                            if (mp.isPlaying())
+                                mp.pause();
+                            txtDifference.setTextColor(Color.RED);
                         }
+                        else {
+                            if (!mp.isPlaying())
+                                mp.start();
+                            txtDifference.setTextColor(Color.GREEN);
+                        }
+                        txtDifference.setText(diffAsString);
+                        if (!mp.isPlaying())
+                            mp.start();
                     }
                 });
             }
         }
-
-        private void updateEnemyResult() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        txtEnemyDistance.setText(TIMER_DECIMAL_FORMAT.format(enemyResultForNow.getTotalDistance()) + " m");
-//                        txtEnemyTime.setText(formatter.format(new Date(enemyResultForNow.getTotalTime())) + " s");
-                    }
-                });
-//            }
-        }
-
-//        private void updateDifference(final int enemyDistance) {
-//            if (userResultForNow != null) {
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        int diff = enemyDistance - (int) userResultForNow.getTotalDistance();
-//                        String strDiff;
-//                        if (diff >= 0)
-//                            strDiff = "+" + diff;
-//                        else
-//                            strDiff = diff + "";
-//                        txtDifference.setText(strDiff);
-//                    }
-//                });
-//            }
-//        }
     };
 
     private class CheckIfHostJoined extends AsyncTask<Void, Void, Boolean> {
