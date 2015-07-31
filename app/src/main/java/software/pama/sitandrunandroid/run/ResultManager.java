@@ -269,25 +269,25 @@ public class ResultManager extends Service {
 //            }
 //            else {
 
-                userDistance += 5;
-                if (userDistance > 0)
-                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
+//                userDistance += 5;
+//                if (userDistance > 0)
+//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
 
-//                Location newLocation = gpsLocationListener.getCurrentLocation();
-//                if (newLocation != null && isAccurate(newLocation) && isFarEnough(newLocation)) {
-//                    if (userLocation != null)
-//                        userDistance += userLocation.distanceTo(newLocation);
-//                    userLocation = newLocation;
-//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
-//                    float edge = (distanceToRun - userDistance) / (float) distanceToRun;
-//                    if (edge < 0.05) {
-//                        lowerLocationUpdateDistance(0.33f);
-//                    }
-//                    Log.d("RunThread", "Total distance: " + userDistance);
-//                } else {
-//                    // TODO to był kiedyś problem, teraz nie wiadomo jak to wpłynie na przebieg biegu, powinno być wszystko okej
-//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
-//                }
+                Location newLocation = gpsLocationListener.getCurrentLocation();
+                if (newLocation != null && isAccurate(newLocation) && isFarEnough(newLocation)) {
+                    if (userLocation != null)
+                        userDistance += userLocation.distanceTo(newLocation);
+                    userLocation = newLocation;
+                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
+                    float edge = (distanceToRun - userDistance) / (float) distanceToRun;
+                    if (edge < 0.05) {
+                        lowerLocationUpdateDistance(0.33f);
+                    }
+                    Log.d("RunThread", "Total distance: " + userDistance);
+                } else {
+                    // TODO to był kiedyś problem, teraz nie wiadomo jak to wpłynie na przebieg biegu, powinno być wszystko okej
+                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
+                }
 //            }
             Logger.getLogger("").info("Run " + userDistance);
             if (distanceToRun - userDistance <= 0 || runFinish.isRunOver()) {
