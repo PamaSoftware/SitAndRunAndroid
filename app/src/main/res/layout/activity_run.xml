@@ -9,127 +9,97 @@
     tools:context=".MyActivity">
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:textAlignment="center"
-        android:textSize="48dp"
-        android:text="@string/txt_distance"
-        android:id="@+id/txtDistance"
-        android:layout_gravity="top"
-        android:layout_below="@+id/textView2"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:textAlignment="center"
-        android:textSize="40dp"
-        android:text="@string/txt_time"
-        android:id="@+id/txtTime"
-        android:layout_below="@+id/txtDistance"
-        android:layout_alignParentLeft="true" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:textAlignment="center"
-        android:textSize="40dp"
-        android:text="@string/txt_run_over"
-        android:id="@+id/txtRunOver"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:textAlignment="center"
-        android:textSize="40dp"
-        android:text="Start In:"
-        android:id="@+id/txtSattelites"
+        android:id="@+id/distanceToRun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="45dp"
+        android:text="Distance: "
         android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_centerHorizontal="true"
+        android:textAlignment="center"
+        android:padding="5dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
-        android:id="@+id/enemyDistance"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:id="@+id/countdownText"
+        android:textSize="45dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textAlignment="center"
-        android:textSize="48dp"
+        android:layout_centerHorizontal="true"
+        android:padding="5dp"
+        android:layout_marginTop="67dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/userText"
+        android:text="You"
+        android:textSize="45dp"
+        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:padding="5dp"
+        android:layout_marginTop="180dp" />
+
+    <TextView
+        android:id="@+id/userDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="45dp"
         android:text="@string/txt_distance"
-        android:layout_gravity="top"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/enemyText"
-        android:layout_alignParentLeft="true" />
-
-    <TextView
-        android:id="@+id/enemyTime"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:textAlignment="center"
-        android:textSize="40dp"
-        android:text="@string/txt_time"
-        android:layout_below="@+id/enemyDistance"
-        android:layout_alignParentLeft="true" />
+        android:padding="5dp"
+        android:layout_alignTop="@+id/userText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/userText"
+        android:layout_toEndOf="@+id/userText"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/enemyText"
+        android:textSize="45dp"
+        android:text="Enemy"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="240dp"
+        android:padding="5dp" />
+
+    <TextView
+        android:id="@+id/enemyDistance"
+        android:textSize="45dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Enemy"
-        android:layout_below="@+id/countdownText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:textAlignment="center"
+        android:text="@string/txt_distance"
+        android:padding="5dp"
+        android:layout_alignTop="@+id/enemyText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/enemyText"
+        android:layout_toEndOf="@+id/enemyText"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/difference"
         android:textSize="60dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/enemyTime"
-        android:layout_alignEnd="@+id/enemyTime"
-        android:layout_below="@+id/enemyTime" />
-
-    <TextView
-        android:id="@+id/countdownText"
-        android:text=""
-        android:textSize="55dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_alignTop="@+id/txtRunOver"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="You"
-        android:layout_below="@+id/txtSattelites"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
         android:textAlignment="center"
-        android:textSize="40dp"
-        android:text="@string/txt_run_over"
-        android:id="@+id/textView3"
-        android:layout_below="@+id/enemyTime"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" /><![CDATA[
-        android:layout_below="@+id/txtRunOver" />
+        android:layout_centerHorizontal="true"
+        android:padding="5dp"
+        android:layout_marginBottom="20dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_above="@+id/txtRunOver" />
 
+    <TextView
+        android:id="@+id/txtRunOver"
+        android:textSize="45dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textAlignment="center"
+        android:layout_alignParentBottom="true"
+        android:padding="5dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    ]]>
 </RelativeLayout>

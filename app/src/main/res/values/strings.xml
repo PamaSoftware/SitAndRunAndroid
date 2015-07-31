@@ -8,7 +8,7 @@
     <string name="title_activity_tournament">TournamentActivity</string>
     <string name="txt_time">0 s</string>
     <string name="set_accuracy">set accuracy</string>
-    <string name="txt_run_over" />
+    <string name="txt_run_over" >run over</string>
     <string name="txt_sattelites">Sattelites:</string>
     <string name="title_activity_authentication">authentication</string>
 

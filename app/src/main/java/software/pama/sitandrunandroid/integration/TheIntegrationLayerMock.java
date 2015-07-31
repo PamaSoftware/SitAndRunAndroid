@@ -4,6 +4,7 @@ import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import java.io.IOException;
 
@@ -13,6 +14,7 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     public static final String TEST = "TEST";
     public static final int COUNTDOWN = 3;
+    public static final int DISTANCE = 100;
     private int time = 0;
     private int distance = 10;
 
@@ -24,6 +26,11 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     public static TheIntegrationLayerMock getInstance() {
         return TheIntgerationLayerHolder.instance;
+    }
+
+    @Override
+    public TheIntegrationLayer initialize(GoogleAccountCredential credential) {
+        return null;
     }
 
     @Override
@@ -43,12 +50,12 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     @Override
     public RunStartInfo startRunWithRandom(Preferences preferences) throws IOException {
-        return new RunStartInfo().setDistance(100).setTime(3);
+        return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
-    public int joinFriend(Preferences preferences) throws IOException {
-        return COUNTDOWN;
+    public RunStartInfo joinFriend(Preferences preferences) throws IOException {
+        return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
@@ -57,8 +64,8 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     }
 
     @Override
-    public int startRunWithFriend(Preferences preferences) throws IOException {
-        return COUNTDOWN;
+    public RunStartInfo startRunWithFriend(Preferences preferences) throws IOException {
+        return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
@@ -68,7 +75,7 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
-        distance += 5;
+        distance += 1;
         time += 1;
         return new RunResultPiece().setDistance(distance).setTime(time);
     }

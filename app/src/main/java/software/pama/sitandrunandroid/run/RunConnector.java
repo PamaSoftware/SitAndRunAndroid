@@ -6,16 +6,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
-import software.pama.sitandrunandroid.model.RunDistance;
+import software.pama.sitandrunandroid.activities.helpers.IntentParams;
 import software.pama.sitandrunandroid.model.RunResult;
-import software.pama.sitandrunandroid.run.user.ResultManager;
-import software.pama.sitandrunandroid.run.user.location.intent.IntentParams;
+import software.pama.sitandrunandroid.run.helpers.RunFinish;
 
 public class RunConnector {
 
     public static final RunResult EMPTY_RESULT = new RunResult(0, 0);
     private Context context;
-    private RunDistance runDistance;
+    private int runDistance;
     private ResultManager resultManager;
     private boolean userResultManagerBounded = false;
     private ServiceConnection userResultManagerConnection = new ServiceConnection() {
@@ -35,7 +34,7 @@ public class RunConnector {
         }
     };
 
-    public RunConnector(Context context, RunDistance distanceToRun) {
+    public RunConnector(Context context, int distanceToRun) {
         this.context = context;
         this.runDistance = distanceToRun;
         activateLocationService();
@@ -83,7 +82,7 @@ public class RunConnector {
 
     private void activateLocationService() {
         Intent locationServiceIntent = new Intent(context, ResultManager.class);
-        locationServiceIntent.putExtra(IntentParams.DISTANCE_TO_RUN_PARAM, runDistance.getDistanceInMeters());
+        locationServiceIntent.putExtra(IntentParams.DISTANCE_TO_RUN, runDistance);
         context.bindService(locationServiceIntent, userResultManagerConnection, Context.BIND_AUTO_CREATE);
         context.startService(locationServiceIntent);
     }

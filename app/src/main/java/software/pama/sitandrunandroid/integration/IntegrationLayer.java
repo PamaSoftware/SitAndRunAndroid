@@ -4,15 +4,15 @@ import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
 import java.io.IOException;
 
 import software.pama.sitandrunandroid.model.RunResult;
 
-/**
- * Created by marek_000 on 2015-06-16.
- */
 public interface IntegrationLayer {
+
+    TheIntegrationLayer initialize(GoogleAccountCredential credential);
 
     Profile signIn() throws IOException;
 
@@ -22,11 +22,11 @@ public interface IntegrationLayer {
 
     RunStartInfo startRunWithRandom(Preferences preferences) throws IOException;
 
-    int joinFriend(Preferences preferences) throws IOException;
+    RunStartInfo joinFriend(Preferences preferences) throws IOException;
 
     boolean hostRunWithFriend(String login, Preferences preferences) throws IOException;
 
-    int startRunWithFriend(Preferences preferences) throws IOException;
+    RunStartInfo startRunWithFriend(Preferences preferences) throws IOException;
 
     boolean checkIfHostAlive() throws IOException;
 

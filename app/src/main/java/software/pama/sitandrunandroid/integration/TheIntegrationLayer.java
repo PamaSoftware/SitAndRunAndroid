@@ -27,6 +27,7 @@ public class TheIntegrationLayer implements IntegrationLayer {
         return TheIntgerationLayerHolder.instance;
     }
 
+    @Override
     public TheIntegrationLayer initialize(GoogleAccountCredential credential) {
         endpointAPI = EndpointBuilder.getApiServiceHandle(credential);
         return TheIntgerationLayerHolder.instance;
@@ -53,9 +54,8 @@ public class TheIntegrationLayer implements IntegrationLayer {
     }
 
     @Override
-    public int joinFriend(Preferences preferences) throws IOException {
-//        return endpointAPI.joinRunWithFriend(preferences).execute().getResult();
-        return -1;
+    public RunStartInfo joinFriend(Preferences preferences) throws IOException {
+        return endpointAPI.joinRunWithFriend(preferences).execute();
     }
 
     @Override
@@ -64,20 +64,18 @@ public class TheIntegrationLayer implements IntegrationLayer {
     }
 
     @Override
-    public int startRunWithFriend(Preferences preferences) throws IOException {
-//        return endpointAPI.startRunWithFriend(preferences).execute().getResult();
-        return -1;
+    public RunStartInfo startRunWithFriend(Preferences preferences) throws IOException {
+        return endpointAPI.startRunWithFriend().execute();
     }
 
     @Override
     public boolean checkIfHostAlive() throws IOException {
-//        return endpointAPI.checkIfHostAlive().execute().getResult();
-        return false;
+        return endpointAPI.checkIfHostIsAlive().execute().getResult();
     }
 
     @Override
     public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
-        // zrobipæ w klasie RunResult metodê toRunResultPiece
+        // zrobiæ w klasie RunResult metodê toRunResultPiece
         RunResultPiece runInfoPiece = new RunResultPiece();
         runInfoPiece.setDistance((int) myResult.getTotalDistance());
         runInfoPiece.setTime((int)myResult.getTotalTimeMillis()/1000);

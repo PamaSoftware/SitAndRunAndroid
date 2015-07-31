@@ -33,31 +33,36 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".run.user.ResultManager"
+            android:name=".run.ResultManager"
             android:enabled="true"
             android:exported="true" >
         </service>
 
         <activity
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activities.RunActivity"
             android:label="@string/title_activity_tournament" >
         </activity>
         <activity
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activities.SignUpActivity"
             android:label="@string/title_activity_authentication" >
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-        </activity>
-        <activity
-            android:name=".activities.EnemyPickerActivity"
-            android:label="@string/title_activity_enemy_picker" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:name=".activities.EnemyPickerActivity"
+            android:label="@string/title_activity_enemy_picker" >
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
         </activity>
 
         <!--<receiver android:name=".activities.NetworkStateReceiver">-->

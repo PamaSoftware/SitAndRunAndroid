@@ -3,6 +3,7 @@ package software.pama.sitandrunandroid.model;
 public class RunResult {
 
     private float totalDistance;
+    // zmieniæ na int
     private long totalTimeMillis;
 
     public RunResult(float totalDistance, long totalTimeMillis) {

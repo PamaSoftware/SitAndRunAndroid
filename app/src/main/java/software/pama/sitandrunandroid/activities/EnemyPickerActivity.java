@@ -1,20 +1,15 @@
 package software.pama.sitandrunandroid.activities;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -22,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
@@ -30,6 +26,9 @@ import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,11 +37,11 @@ import software.pama.sitandrunandroid.activities.helpers.IntentParams;
 import software.pama.sitandrunandroid.activities.tasks.AsyncTaskResponse;
 import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayer;
-import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 
-public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<Integer>, LocationListener {
+// zrobic klase wewnetrzna dla tego AsyncTaskResponse'a a potem jej uzyc do odebrania odpowiedzi, jak to juz robie zreszta
+public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<RunStartInfo>, LocationListener {
 
     private Button hostForFriendButton;
     private Button joinFriendButton;
@@ -60,37 +59,57 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     private Toast preferenceValidationToast;
     private Toast differenceValidationToast;
     private NetworkStateReceiver networkReceiver;
+    private LocationManager locationManager;
+    private ScheduledExecutorService executor;
+    private float accuracy = Integer.MAX_VALUE;
+    private boolean preferencesValid;
+    private boolean loginValid;
+    private TextView gpsInfo;
+    private TextView networkInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enemy_picker);
-        theIntegrationLayer = TheIntegrationLayerMock.getInstance();
-//        theIntegrationLayer = TheIntegrationLayer.getInstance();
+//        theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+        theIntegrationLayer = TheIntegrationLayer.getInstance();
         hostForFriendButton = (Button) findViewById(R.id.hostForFriendButton);
         joinFriendButton = (Button) findViewById(R.id.joinFriendButton);
         aspirationEditText = (EditText) findViewById(R.id.desiredDistance);
         reservationEditText = (EditText) findViewById(R.id.acceptableDistance);
         friendsLoginText = (EditText) findViewById(R.id.friendsLogin);
+        gpsInfo = (TextView) findViewById(R.id.GPSInfo);
+        networkInfo = (TextView) findViewById(R.id.networkInfo);
         runButton = (Button) findViewById(R.id.runButton);
         preferenceValidationToast = Toast.makeText(this, "Both values must be greater than 500", Toast.LENGTH_SHORT);
         differenceValidationToast = Toast.makeText(this, "Difference must be greater than 100", Toast.LENGTH_SHORT);
-        LocationManager locationManager = (android.location.LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(GPS_PROVIDER, 2000, 0, this);
-//        Toast.makeText(this, "GPS and internet connection is required", Toast.LENGTH_SHORT).show();
-//        networkReceiver = new NetworkStateReceiver();
-//        registerReceiver(networkReceiver, new IntentFilter());
-        // sprawdzic czy jest GPS i czy jest internet, dodac jakiegos sluchacza, jesli internet jest wylaczony
-        // to wtedy dac info i disable przycisk biegu
+        executor = new ScheduledThreadPoolExecutor(1);
+        executor.scheduleAtFixedRate(() -> {
+            if (accuracyValid() && preferencesValid && loginValid && isOnline())
+                runOnUiThread(() -> runButton.setEnabled(true));
+            else
+                runOnUiThread(() -> runButton.setEnabled(false));
+        }, 1, 2, TimeUnit.SECONDS);
         if (isOnline()) {
             Toast.makeText(this, "Internet is connected", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "GPS and internet connection is required", Toast.LENGTH_SHORT).show();
         }
     }
 
     public boolean isOnline() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+        final boolean online = netInfo != null && netInfo.isConnectedOrConnecting();
+        runOnUiThread(() -> {
+            if (online)
+                networkInfo.setText("NET OK");
+            else
+                networkInfo.setText("NET OFF");
+        });
+        return online;
     }
 
     /**
@@ -100,6 +119,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         clearAllData();
         preparePreferencesInput();
         runButton.setVisibility(View.VISIBLE);
+        loginValid = true;
         runWithEnemyTask = new RunWithRandomTask();
     }
 
@@ -108,7 +128,6 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
      */
     public void runWithFriend(View v) {
         clearAllData();
-        theIntegrationLayer = TheIntegrationLayerMock.getInstance();
         joinFriendButton.setVisibility(View.VISIBLE);
         hostForFriendButton.setVisibility(View.VISIBLE);
         runButton.setVisibility(View.VISIBLE);
@@ -118,6 +137,9 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         clearInput(aspirationEditText);
         clearInput(reservationEditText);
         clearInput(friendsLoginText);
+        loginValid = false;
+        preferencesValid = false;
+        accuracy = 0;
         runButton.setVisibility(View.INVISIBLE);
         hostForFriendButton.setVisibility(View.INVISIBLE);
         joinFriendButton.setVisibility(View.INVISIBLE);
@@ -140,6 +162,8 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         preparePreferencesInput();
         prepareFriendsLoginInput();
         hostForFriend = true;
+        loginValid = false;
+        runButton.setEnabled(false);
     }
 
     /**
@@ -149,6 +173,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         clearInput(friendsLoginText);
         removeFriendsLoginValidator();
         preparePreferencesInput();
+        loginValid = true;
         runWithEnemyTask = new JoinFriendTask();
     }
 
@@ -183,10 +208,10 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.length() > 0 && preferencesAreValid(aspirationEditText.getText(), reservationEditText.getText()))
-                    runButton.setEnabled(true);
+                    loginValid = true;
                 else {
                     runButton.setEnabled(false);
-                    differenceValidationToast.show();
+                    loginValid = false;
                 }
             }
         };
@@ -206,7 +231,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
 
             @Override
             public void afterTextChanged(Editable s) {
-                validatePreferences(s, reservationEditText.getText());
+                validateConditions(s, reservationEditText.getText());
             }
 
         });
@@ -223,7 +248,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
 
             @Override
             public void afterTextChanged(Editable s) {
-                validatePreferences(s, aspirationEditText.getText());
+                validateConditions(s, aspirationEditText.getText());
             }
         });
     }
@@ -233,10 +258,11 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
 //        differenceValidationToast.cancel();
     }
 
-    private void validatePreferences(Editable s, Editable p) {
+    private void validateConditions(Editable s, Editable p) {
         if (preferencesAreValid(s, p))
-            runButton.setEnabled(true);
+            preferencesValid = true;
         else {
+            preferencesValid = false;
             runButton.setEnabled(false);
         }
     }
@@ -295,11 +321,13 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
         throw new RuntimeException();
     }
 
-    private void startRun(int countdown) {
+    private void startRun(RunStartInfo runStartInfo) {
         Intent intent = new Intent(this, RunActivity.class);
         if (hasToCheckHost)
             intent.putExtra(IntentParams.CHECK_HOST, true);
-        intent.putExtra(IntentParams.COUNTDOWN_SECONDS, countdown);
+        intent.putExtra(IntentParams.COUNTDOWN_SECONDS, runStartInfo.getTime());
+        intent.putExtra(IntentParams.DISTANCE_TO_RUN, runStartInfo.getDistance());
+        locationManager.removeUpdates(this);
         startActivity(intent);
     }
 
@@ -314,44 +342,39 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     }
 
     @Override
-    public void onTaskFinish(Integer result) {
-        if (result > 0) {
+    public void onTaskFinish(RunStartInfo result) {
+        if (result.getTime() > 0) {
             startRun(result);
         } else
             Toast.makeText(this, "Couldn't find enemy", Toast.LENGTH_SHORT).show();
     }
 
-    private abstract class RunWithEnemyTask extends AsyncTask<Void, Void, Integer> {}
+    private abstract class RunWithEnemyTask extends AsyncTask<Void, Void, RunStartInfo> {}
 
     private class RunWithRandomTask extends RunWithEnemyTask {
 
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected RunStartInfo doInBackground(Void... params) {
             try {
                 RunStartInfo runStartInfo = theIntegrationLayer.startRunWithRandom(preferences);
-                int countdown = runStartInfo.getTime();
-                int distance = runStartInfo.getDistance();
-                Logger.getAnonymousLogger().log(Level.INFO, "Gotowy do rywalizacji, odliczam " + countdown + " sekund");
-                // przekazac klase, potem w intent przekazac parametry, potem wykorzysac parametry do uruchomienia biegu
-                return countdown;
+                Logger.getAnonymousLogger().log(
+                    Level.INFO, "Gotowy do rywalizacji, odliczam " + runStartInfo.getTime() + " sekund");
+                return runStartInfo;
             } catch (Exception e) {
                 e.printStackTrace();
                 Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
             }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    runButton.setEnabled(true);
-                    runWithEnemyTask = new RunWithRandomTask();
-                }
+            runOnUiThread(() -> {
+                runButton.setEnabled(true);
+                runWithEnemyTask = new RunWithRandomTask();
             });
-            return -1;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(Integer countdown) {
-            super.onPostExecute(countdown);
-            startRun(countdown);
+        protected void onPostExecute(RunStartInfo runStartInfo) {
+            super.onPostExecute(runStartInfo);
+            startRun(runStartInfo);
         }
     }
 
@@ -365,7 +388,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
             boolean runCreated = false;
             try {
                 runCreated = theIntegrationLayer.hostRunWithFriend(friendsLogin, preferences);
-                Logger.getAnonymousLogger().log(Level.INFO, "RunThread created");
+                Logger.getAnonymousLogger().log(Level.INFO, "Successfully created run: " + runCreated);
             } catch (Exception e) {
                 e.printStackTrace();
                 Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
@@ -383,30 +406,27 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     private class JoinFriendTask extends RunWithEnemyTask {
 
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected RunStartInfo doInBackground(Void... params) {
             try {
-                final int result = theIntegrationLayer.joinFriend(preferences);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (validateResult(result)) {
-                            hasToCheckHost = true;
-                            startRun(result);
-                        }
-                        else {
-                            runButton.setEnabled(true);
-                            runWithEnemyTask = new JoinFriendTask();
-                        }
+                final RunStartInfo result = theIntegrationLayer.joinFriend(preferences);
+                runOnUiThread(() -> {
+                    if (validateResult(result.getTime())) {
+                        hasToCheckHost = true;
+                        startRun(result);
+                    }
+                    else {
+                        runButton.setEnabled(true);
+                        runWithEnemyTask = new JoinFriendTask();
                     }
                 });
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return 0;
+            return null;
         }
     }
 
-    private void startRunAfterFriendJoins() throws IOException {
+    private void waitForFriendToJoinAndStartRun() throws IOException {
         TimerTask task = new TimerTask() {
 
             int requestCounter;
@@ -414,21 +434,16 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
             @Override
             public void run() {
                 try {
-                    // mozliwe ze tu taska trzeba zrobic
-                    int result = theIntegrationLayer.startRunWithFriend(preferences);
+                    RunStartInfo result = theIntegrationLayer.startRunWithFriend(preferences);
                     requestCounter++;
                     Logger.getAnonymousLogger().log(Level.INFO, "Looking for friend");
-                    if (result > 0) {
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Looking for friend", Toast.LENGTH_SHORT).show());
+                    if (result.getTime() > 0) {
                         startRun(result);
                         this.cancel();
                     }
-                    else if (requestCounter == 1) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                enemyNotFound();
-                            }
-                        });
+                    else if (requestCounter == 10) {
+                        runOnUiThread(() -> enemyNotFound());
                         Logger.getAnonymousLogger().log(Level.INFO, "Couldn't find enemy");
                         this.cancel();
                     }
@@ -449,10 +464,10 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     private class HostForFriendResponse implements AsyncTaskResponse<Boolean> {
 
         @Override
-        public void onTaskFinish(Boolean result) {
-            if (result) {
+        public void onTaskFinish(Boolean runCreated) {
+            if (runCreated) {
                 try {
-                    startRunAfterFriendJoins();
+                    waitForFriendToJoinAndStartRun();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -462,13 +477,21 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
 
     @Override
     public void onLocationChanged(Location location) {
-        Toast.makeText(this, location.toString(), Toast.LENGTH_SHORT).show();
-        if (location.getAccuracy() < 50)
-            runButton.setEnabled(true);
-        else {
-            Toast.makeText(this, "Need better GPS connection", Toast.LENGTH_SHORT);
-            runButton.setEnabled(false);
-        }
+        accuracy = location.getAccuracy();
+        Toast.makeText(this, "Accuracy: " + accuracy, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean accuracyValid() {
+        // testowo
+        accuracy = 20;
+        final boolean valid = accuracy < 25 && accuracy > 0;
+        runOnUiThread(() -> {
+            if (valid)
+                gpsInfo.setText("GPS OK");
+            else
+                gpsInfo.setText("GPS BAD");
+        });
+        return valid;
     }
 
     @Override
@@ -484,22 +507,6 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<I
     @Override
     public void onProviderDisabled(String provider) {
         runButton.setEnabled(false);
-    }
-
-    @Override
-    protected void onDestroy() {
-//        int flag = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-//        ComponentName component=new ComponentName(getApplicationContext(), NetworkStateReceiver.class);
-//
-//        getPackageManager().setComponentEnabledSetting(component, flag, PackageManager.DONT_KILL_APP);
-
-//        unregisterReceiver(networkReceiver);
-//        ComponentName receiver = new ComponentName(this, NetworkStateReceiver.class);
-//        PackageManager pm = getPackageManager();
-//        pm.setComponentEnabledSetting(receiver,
-//                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-//                PackageManager.DONT_KILL_APP);
-        super.onDestroy();
     }
 
     @Override
