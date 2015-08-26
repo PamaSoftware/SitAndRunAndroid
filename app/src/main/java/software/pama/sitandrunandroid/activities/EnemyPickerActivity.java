@@ -20,7 +20,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunPreferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
     private EditText friendsLoginText;
     private Button runButton;
     private IntegrationLayer theIntegrationLayer;
-    private Preferences preferences;
+    private RunPreferences preferences;
     private String friendsLogin;
     private RunWithEnemyTask runWithEnemyTask;
     private boolean hostForFriend;
@@ -86,11 +86,24 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(GPS_PROVIDER, 2000, 0, this);
         executor = new ScheduledThreadPoolExecutor(1);
-        executor.scheduleAtFixedRate(() -> {
-            if (accuracyValid() && preferencesValid && loginValid && isOnline())
-                runOnUiThread(() -> runButton.setEnabled(true));
-            else
-                runOnUiThread(() -> runButton.setEnabled(false));
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if (EnemyPickerActivity.this.accuracyValid() && preferencesValid && loginValid && EnemyPickerActivity.this.isOnline())
+                    EnemyPickerActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            runButton.setEnabled(true);
+                        }
+                    });
+                else
+                    EnemyPickerActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            runButton.setEnabled(false);
+                        }
+                    });
+            }
         }, 1, 2, TimeUnit.SECONDS);
         if (isOnline()) {
             Toast.makeText(this, "Internet is connected", Toast.LENGTH_SHORT).show();
@@ -103,11 +116,14 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         final boolean online = netInfo != null && netInfo.isConnectedOrConnecting();
-        runOnUiThread(() -> {
-            if (online)
-                networkInfo.setText("NET OK");
-            else
-                networkInfo.setText("NET OFF");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (online)
+                    networkInfo.setText("NET OK");
+                else
+                    networkInfo.setText("NET OFF");
+            }
         });
         return online;
     }
@@ -322,6 +338,10 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
     }
 
     private void startRun(RunStartInfo runStartInfo) {
+        if (runStartInfo == null) {
+            Toast.makeText(this, "Application Error", Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(this, RunActivity.class);
         if (hasToCheckHost)
             intent.putExtra(IntentParams.CHECK_HOST, true);
@@ -334,7 +354,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
     private void setupPreferences() {
         int aspiration = getInt(aspirationEditText.getText());
         int reservation = getInt(reservationEditText.getText());
-        preferences = new Preferences().setAspiration(aspiration).setReservation(reservation);
+        preferences = new RunPreferences().setAspiration(aspiration).setReservation(reservation);
     }
 
     private void setupFriendsLogin() {
@@ -364,9 +384,12 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
                 e.printStackTrace();
                 Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
             }
-            runOnUiThread(() -> {
-                runButton.setEnabled(true);
-                runWithEnemyTask = new RunWithRandomTask();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    runButton.setEnabled(true);
+                    runWithEnemyTask = new RunWithRandomTask();
+                }
             });
             return null;
         }
@@ -409,14 +432,16 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
         protected RunStartInfo doInBackground(Void... params) {
             try {
                 final RunStartInfo result = theIntegrationLayer.joinFriend(preferences);
-                runOnUiThread(() -> {
-                    if (validateResult(result.getTime())) {
-                        hasToCheckHost = true;
-                        startRun(result);
-                    }
-                    else {
-                        runButton.setEnabled(true);
-                        runWithEnemyTask = new JoinFriendTask();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (validateResult(result.getTime())) {
+                            hasToCheckHost = true;
+                            startRun(result);
+                        } else {
+                            runButton.setEnabled(true);
+                            runWithEnemyTask = new JoinFriendTask();
+                        }
                     }
                 });
             } catch (IOException e) {
@@ -437,13 +462,23 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
                     RunStartInfo result = theIntegrationLayer.startRunWithFriend(preferences);
                     requestCounter++;
                     Logger.getAnonymousLogger().log(Level.INFO, "Looking for friend");
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Looking for friend", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Looking for friend", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     if (result.getTime() > 0) {
                         startRun(result);
                         this.cancel();
                     }
                     else if (requestCounter == 10) {
-                        runOnUiThread(() -> enemyNotFound());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                enemyNotFound();
+                            }
+                        });
                         Logger.getAnonymousLogger().log(Level.INFO, "Couldn't find enemy");
                         this.cancel();
                     }
@@ -485,13 +520,22 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
         // testowo
         accuracy = 20;
         final boolean valid = accuracy < 25 && accuracy > 0;
-        runOnUiThread(() -> {
-            if (valid)
-                gpsInfo.setText("GPS OK");
-            else
-                gpsInfo.setText("GPS BAD");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (valid)
+                    gpsInfo.setText("GPS OK");
+                else
+                    gpsInfo.setText("GPS BAD");
+            }
         });
         return valid;
+    }
+
+    @Override
+    protected void onDestroy() {
+        locationManager.removeUpdates(this);
+        super.onDestroy();
     }
 
     @Override

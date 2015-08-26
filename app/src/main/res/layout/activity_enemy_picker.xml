@@ -4,6 +4,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@drawable/background_dark_middle_darker_brighter"
     tools:context="software.pama.sitandrunandroid.activities.EnemyPickerActivity">
 
     <TextView
@@ -13,6 +14,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:gravity="center"
+        android:textColor="#baff3800"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -20,27 +22,35 @@
         android:layout_alignParentEnd="true" />
 
     <Button
-
         android:text="Run With Random"
         android:id="@+id/runWithRandomButton"
         android:onClick="runWithRandom"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
+        android:layout_margin="3dp"
+        android:textSize="15dp"
         android:layout_below="@+id/chooseEnemy"
+        android:textColor="#baff3800"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignRight="@+id/chooseEnemy"
-        android:layout_alignEnd="@+id/chooseEnemy" />
+        android:layout_alignEnd="@+id/chooseEnemy"
+        android:background="@drawable/black_button" />
 
     <Button
         android:text="Run With Friend"
         android:id="@+id/runWithFriendButton"
         android:onClick="runWithFriend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/runWithRandomButton"
+        android:textColor="#baff3800"
+        android:background="@drawable/black_button"
         android:layout_alignParentLeft="true"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_margin="3dp"
+        android:textSize="15dp"
+        android:layout_marginBottom="10dp"
         android:layout_alignRight="@+id/runWithRandomButton"
         android:layout_alignEnd="@+id/runWithRandomButton" />
 
@@ -50,8 +60,12 @@
         android:onClick="hostForFriend"
         android:visibility="invisible"
         android:layout_below="@+id/runWithFriendButton"
+        android:layout_height="40dp"
+        android:layout_margin="3dp"
+        android:textSize="15dp"
+        android:textColor="#baff3800"
+        android:background="@drawable/black_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_alignRight="@+id/runWithFriendButton"
         android:layout_alignEnd="@+id/runWithFriendButton"
         android:layout_alignParentLeft="true"
@@ -63,14 +77,18 @@
         android:onClick="joinFriend"
         android:visibility="invisible"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_below="@+id/hostForFriendButton"
         android:layout_alignParentLeft="true"
+        android:layout_height="40dp"
+        android:layout_margin="3dp"
+        android:textSize="15dp"
+        android:textColor="#baff3800"
+        android:background="@drawable/black_button"
         android:layout_alignRight="@+id/hostForFriendButton"
         android:layout_alignEnd="@+id/hostForFriendButton" />
 
     <EditText
-        android:hint="Desired Distance"
+        android:hint="Desired distance"
         android:id="@+id/desiredDistance"
         android:visibility="invisible"
         android:inputType="numberSigned"
@@ -79,6 +97,8 @@
         android:ems="10"
         android:layout_below="@+id/joinFriendButton"
         android:layout_alignParentLeft="true"
+        android:textColor="#a52a00"
+        android:textColorHint="#a52a00"
         android:layout_alignRight="@+id/joinFriendButton"
         android:layout_alignEnd="@+id/joinFriendButton" />
 
@@ -91,6 +111,8 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:layout_below="@+id/desiredDistance"
+        android:textColor="#a52a00"
+        android:textColorHint="#a52a00"
         android:layout_alignParentLeft="true"
         android:layout_alignRight="@+id/joinFriendButton"
         android:layout_alignEnd="@+id/joinFriendButton" />
@@ -104,6 +126,8 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:layout_below="@+id/acceptableDistance"
+        android:textColor="#a52a00"
+        android:textColorHint="#a52a00"
         android:layout_alignParentLeft="true"
         android:layout_alignRight="@+id/desiredDistance"
         android:layout_alignEnd="@+id/desiredDistance" />
@@ -116,8 +140,12 @@
         android:enabled="false"
         android:layout_below="@+id/friendsLogin"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:layout_height="40dp"
+        android:layout_margin="3dp"
+        android:textSize="15dp"
+        android:textColor="#baff3800"
+        android:background="@drawable/black_button"
         android:layout_alignRight="@+id/hostForFriendButton"
         android:layout_alignEnd="@+id/hostForFriendButton" />
 
@@ -130,6 +158,7 @@
         android:width="70dp"
         android:layout_alignRight="@+id/runButton"
         android:layout_alignEnd="@+id/runButton"
+        android:textColor="#baff3800"
         android:layout_above="@+id/networkInfo" />
 
     <TextView
@@ -141,6 +170,7 @@
         android:id="@+id/networkInfo"
         android:layout_alignParentBottom="true"
         android:layout_alignLeft="@+id/GPSInfo"
+        android:textColor="#baff3800"
         android:layout_alignStart="@+id/GPSInfo" />
 
 </RelativeLayout>

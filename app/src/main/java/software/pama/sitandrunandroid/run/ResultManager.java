@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.appspot.formidable_code_826.sitAndRunApi.model.OpponentPositionInfo;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunPreferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
 
 import java.io.IOException;
@@ -347,7 +349,7 @@ public class ResultManager extends Service {
             try {
                 if (userResult.greaterThan(prevResult)) {
                     Logger.getAnonymousLogger().log(Level.INFO, "Moj czas " + userResult.getTotalTimeMillis() + " dystans " + userResult.getTotalDistance());
-                    RunResultPiece enemyResultPiece = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, userResult);
+                    OpponentPositionInfo enemyResultPiece = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, userResult);
                     if (enemyResultPiece != null) {
                         Integer enemyDistance = enemyResultPiece.getDistance();
                         if (enemyDistance > 0)

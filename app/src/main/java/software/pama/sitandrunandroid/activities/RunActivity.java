@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -99,7 +100,12 @@ public class RunActivity extends Activity {
                         Logger.getLogger("").log(Level.INFO, "Checking if host joined");
                         boolean hostJoined = new CheckIfHostJoined().execute().get();
                         if (!hostJoined) {
-                            runOnUiThread(() -> goToLobbyAfterHostDisconnection());
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    goToLobbyAfterHostDisconnection();
+                                }
+                            });
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -140,7 +146,12 @@ public class RunActivity extends Activity {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                runOnUiThread(() -> srartEnemyPickerActivity());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        srartEnemyPickerActivity();
+                    }
+                });
             }
         }, 3000);
     }
@@ -189,15 +200,21 @@ public class RunActivity extends Activity {
         }
 
         private void showUserResult() {
-            runOnUiThread(() -> {
-                txtDistance.setText(DISTANCE_DECIMAL_FORMAT.format(userResultForNow.getTotalDistance()) + " m");
-                txtCountdown.setText(TIME_FORMATTER.format(new Date(runTime)));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    txtDistance.setText(DISTANCE_DECIMAL_FORMAT.format(userResultForNow.getTotalDistance()) + " m");
+                    txtCountdown.setText(TIME_FORMATTER.format(new Date(runTime)));
+                }
             });
         }
 
         private void showEnemyResult() {
-            runOnUiThread(() -> {
-                txtEnemyDistance.setText(DISTANCE_DECIMAL_FORMAT.format(enemyResultForNow.getTotalDistance()) + " m");
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    txtEnemyDistance.setText(DISTANCE_DECIMAL_FORMAT.format(enemyResultForNow.getTotalDistance()) + " m");
+                }
             });
         }
 
@@ -207,31 +224,36 @@ public class RunActivity extends Activity {
                 executor.shutdown();
                 // wyswietlic buttona i jesli ktos wcisnie go, to jest przejscie do ostatniego ekranu
                 Logger.getLogger("").log(Level.INFO, "Run over, shutting down executor");
-                runOnUiThread(() -> {
-                    if (runFinish.userWon())
-                        txtRunOver.setText("YOU WON!");
-                    else
-                        txtRunOver.setText("YOUR ENEMY WON.");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (runFinish.userWon())
+                            txtRunOver.setText("YOU WON!");
+                        else
+                            txtRunOver.setText("YOUR ENEMY WON.");
+                    }
                 });
             }
         }
 
         private void updateDifference() {
             if (userResultForNow != null) {
-                runOnUiThread(() -> {
-                    float diff = enemyResultForNow.getTotalDistance() - userResultForNow.getTotalDistance();
-                    String diffAsString = DISTANCE_DECIMAL_FORMAT.format(diff);
-                    if (diff >= 0) {
-                        diffAsString = "+" + diffAsString;
-                        if (diff >= 15)
-                            mp.pause();
-                        txtDifference.setTextColor(Color.RED);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        float diff = enemyResultForNow.getTotalDistance() - userResultForNow.getTotalDistance();
+                        String diffAsString = DISTANCE_DECIMAL_FORMAT.format(diff);
+                        if (diff >= 0) {
+                            diffAsString = "+" + diffAsString;
+                            if (diff >= 15)
+                                mp.pause();
+                            txtDifference.setTextColor(Color.RED);
+                        } else {
+                            mp.start();
+                            txtDifference.setTextColor(Color.GREEN);
+                        }
+                        txtDifference.setText(diffAsString);
                     }
-                    else {
-                        mp.start();
-                        txtDifference.setTextColor(Color.GREEN);
-                    }
-                    txtDifference.setText(diffAsString);
                 });
             }
         }

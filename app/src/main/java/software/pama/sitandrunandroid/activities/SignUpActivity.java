@@ -52,6 +52,30 @@ public class SignUpActivity extends Activity {
         manageAndroidAccounts();
         integrationLayer = TheIntegrationLayer.getInstance().initialize(credential);
         signIn();
+        findViewById(R.id.info).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
+            }
+        });
+        findViewById(R.id.signUpButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
+            }
+        });
+//        findViewById(R.id.action_bar_activity_content).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
+//            }
+//        });
+        loginTextField.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loginTextField.setHint("");
+            }
+        });
     }
 
     private void setupLoginWatcher() {
@@ -219,7 +243,6 @@ public class SignUpActivity extends Activity {
             else {
                 signUpInfoText.setText("Konto założone pomyślnie z loginem " + profile.getLogin());
                 storeProfile(profile);
-                findViewById(R.id.confirmLoginButton).setEnabled(true);
             }
         }
     }

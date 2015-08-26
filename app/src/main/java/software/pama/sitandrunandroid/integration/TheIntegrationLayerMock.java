@@ -1,8 +1,8 @@
 package software.pama.sitandrunandroid.integration;
 
-import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
+import com.appspot.formidable_code_826.sitAndRunApi.model.OpponentPositionInfo;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
-import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunPreferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 
@@ -49,22 +49,22 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     }
 
     @Override
-    public RunStartInfo startRunWithRandom(Preferences preferences) throws IOException {
+    public RunStartInfo startRunWithRandom(RunPreferences preferences) throws IOException {
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
-    public RunStartInfo joinFriend(Preferences preferences) throws IOException {
+    public RunStartInfo joinFriend(RunPreferences preferences) throws IOException {
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
-    public boolean hostRunWithFriend(String login, Preferences preferences) throws IOException {
+    public boolean hostRunWithFriend(String login, RunPreferences preferences) throws IOException {
         return true;
     }
 
     @Override
-    public RunStartInfo startRunWithFriend(Preferences preferences) throws IOException {
+    public RunStartInfo startRunWithFriend(RunPreferences preferences) throws IOException {
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
@@ -74,10 +74,10 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
     }
 
     @Override
-    public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
+    public OpponentPositionInfo getEnemyResult(int forecast, RunResult myResult) throws IOException {
         distance += 1;
         time += 1;
-        return new RunResultPiece().setDistance(distance).setTime(time);
+        return new OpponentPositionInfo().setDistance(distance).setTime(time);
     }
 
 }

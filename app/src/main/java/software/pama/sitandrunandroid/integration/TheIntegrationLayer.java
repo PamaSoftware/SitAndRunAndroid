@@ -1,8 +1,9 @@
 package software.pama.sitandrunandroid.integration;
 
 import com.appspot.formidable_code_826.sitAndRunApi.SitAndRunApi;
-import com.appspot.formidable_code_826.sitAndRunApi.model.Preferences;
+import com.appspot.formidable_code_826.sitAndRunApi.model.OpponentPositionInfo;
 import com.appspot.formidable_code_826.sitAndRunApi.model.Profile;
+import com.appspot.formidable_code_826.sitAndRunApi.model.RunPreferences;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
 import com.appspot.formidable_code_826.sitAndRunApi.model.RunStartInfo;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -49,22 +50,22 @@ public class TheIntegrationLayer implements IntegrationLayer {
     }
 
     @Override
-    public RunStartInfo startRunWithRandom(Preferences preferences) throws IOException {
+    public RunStartInfo startRunWithRandom(RunPreferences preferences) throws IOException {
          return endpointAPI.startRunWithRandom(preferences).execute();
     }
 
     @Override
-    public RunStartInfo joinFriend(Preferences preferences) throws IOException {
+    public RunStartInfo joinFriend(RunPreferences preferences) throws IOException {
         return endpointAPI.joinRunWithFriend(preferences).execute();
     }
 
     @Override
-    public boolean hostRunWithFriend(String login, Preferences preferences) throws IOException {
+    public boolean hostRunWithFriend(String login, RunPreferences preferences) throws IOException {
         return endpointAPI.hostRunWithFriend(login, preferences).execute().getResult();
     }
 
     @Override
-    public RunStartInfo startRunWithFriend(Preferences preferences) throws IOException {
+    public RunStartInfo startRunWithFriend(RunPreferences preferences) throws IOException {
         return endpointAPI.startRunWithFriend().execute();
     }
 
@@ -74,7 +75,7 @@ public class TheIntegrationLayer implements IntegrationLayer {
     }
 
     @Override
-    public RunResultPiece getEnemyResult(int forecast, RunResult myResult) throws IOException {
+    public OpponentPositionInfo getEnemyResult(int forecast, RunResult myResult) throws IOException {
         // zrobiæ w klasie RunResult metodê toRunResultPiece
         RunResultPiece runInfoPiece = new RunResultPiece();
         runInfoPiece.setDistance((int) myResult.getTotalDistance());

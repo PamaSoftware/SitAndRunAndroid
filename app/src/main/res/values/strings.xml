@@ -11,6 +11,7 @@
     <string name="txt_run_over" >run over</string>
     <string name="txt_sattelites">Sattelites:</string>
     <string name="title_activity_authentication">authentication</string>
+    <string name="application_name">Runner</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="sign_up_txt">Sign Up</string>
@@ -18,4 +19,5 @@
     <string name="title_activity_real_time_run">RealTimeRun</string>
     <string name="title_activity_enemy_picker">EnemyPicker</string>
     <string name="title_activity_run_with_random">RunWithRandomActivity</string>
+    <string name="title_activity_splash_screen">SplashScreenActivity</string>
 </resources>

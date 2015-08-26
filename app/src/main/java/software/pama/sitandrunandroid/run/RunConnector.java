@@ -39,6 +39,7 @@ public class RunConnector {
         this.runDistance = distanceToRun;
         activateLocationService();
     }
+
     public void startRun() {
         if (userResultManagerBounded)
             resultManager.startRun();

@@ -6,6 +6,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@drawable/background_dark_middle_darker_brighter"
     tools:context=".MyActivity">
 
     <TextView
@@ -18,7 +19,8 @@
         android:layout_centerHorizontal="true"
         android:textAlignment="center"
         android:padding="5dp"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#baff3800" />
 
     <TextView
         android:id="@+id/countdownText"
@@ -29,6 +31,7 @@
         android:layout_centerHorizontal="true"
         android:padding="5dp"
         android:layout_marginTop="67dp"
+        android:textColor="#baff3800"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -38,7 +41,8 @@
         android:layout_height="wrap_content"
         android:layout_width="150dp"
         android:padding="5dp"
-        android:layout_marginTop="180dp" />
+        android:layout_marginTop="180dp"
+        android:textColor="#53ffffff" />
 
     <TextView
         android:id="@+id/userDistance"
@@ -53,6 +57,7 @@
         android:layout_alignParentEnd="true"
         android:layout_toRightOf="@+id/userText"
         android:layout_toEndOf="@+id/userText"
+        android:textColor="#baff3800"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -62,7 +67,8 @@
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="240dp"
-        android:padding="5dp" />
+        android:padding="5dp"
+        android:textColor="#53ffffff" />
 
     <TextView
         android:id="@+id/enemyDistance"
@@ -77,11 +83,12 @@
         android:layout_alignParentEnd="true"
         android:layout_toRightOf="@+id/enemyText"
         android:layout_toEndOf="@+id/enemyText"
+        android:textColor="#baff3800"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/difference"
-        android:textSize="60dp"
+        android:textSize="45dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
@@ -89,6 +96,7 @@
         android:padding="5dp"
         android:layout_marginBottom="20dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#baff3800"
         android:layout_above="@+id/txtRunOver" />
 
     <TextView
@@ -100,6 +108,7 @@
         android:textAlignment="center"
         android:layout_alignParentBottom="true"
         android:padding="5dp"
+        android:textColor="#baff3800"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

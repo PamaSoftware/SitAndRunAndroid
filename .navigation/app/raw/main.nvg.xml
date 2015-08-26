@@ -8,8 +8,8 @@
         class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
         className = "software.pama.sitandrunandroid.activities.RunActivity"/>
       <point      
-        x = "508"      
-        y = "132"/>
+        x = "3012"      
+        y = "172"/>
     </statePointEntry>
     <statePointEntry>
       <state      
@@ -18,6 +18,30 @@
       <point      
         x = "1776"      
         y = "132"/>
+    </statePointEntry>
+    <statePointEntry>
+      <state      
+        class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
+        className = "software.pama.sitandrunandroid.integration.IntegrationLayer"/>
+      <point      
+        x = "640"      
+        y = "1280"/>
+    </statePointEntry>
+    <statePointEntry>
+      <state      
+        class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
+        className = "software.pama.sitandrunandroid.activities.SignUpActivity"/>
+      <point      
+        x = "208"      
+        y = "160"/>
+    </statePointEntry>
+    <statePointEntry>
+      <state      
+        class = "com.android.tools.idea.editors.navigation.model.ActivityState"      
+        className = "software.pama.sitandrunandroid.activities.EnemyPickerActivity"/>
+      <point      
+        x = "1696"      
+        y = "168"/>
     </statePointEntry>
   </locations>
 </navigationModel>
