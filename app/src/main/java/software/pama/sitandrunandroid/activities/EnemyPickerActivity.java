@@ -37,6 +37,7 @@ import software.pama.sitandrunandroid.activities.helpers.IntentParams;
 import software.pama.sitandrunandroid.activities.tasks.AsyncTaskResponse;
 import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayer;
+//import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 
@@ -517,7 +518,7 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
     }
 
     private boolean accuracyValid() {
-        // testowo
+//         testowo
         accuracy = 20;
         final boolean valid = accuracy < 25 && accuracy > 0;
         runOnUiThread(new Runnable() {
@@ -536,6 +537,10 @@ public class EnemyPickerActivity extends Activity implements AsyncTaskResponse<R
     protected void onDestroy() {
         locationManager.removeUpdates(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 
     @Override

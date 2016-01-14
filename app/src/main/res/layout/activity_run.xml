@@ -13,7 +13,7 @@
         android:id="@+id/distanceToRun"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:text="Distance: "
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
@@ -24,7 +24,7 @@
 
     <TextView
         android:id="@+id/countdownText"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
@@ -37,7 +37,7 @@
     <TextView
         android:id="@+id/userText"
         android:text="You"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:layout_height="wrap_content"
         android:layout_width="150dp"
         android:padding="5dp"
@@ -49,7 +49,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:text="@string/txt_distance"
         android:padding="5dp"
         android:layout_alignTop="@+id/userText"
@@ -62,7 +62,7 @@
 
     <TextView
         android:id="@+id/enemyText"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:text="Enemy"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
@@ -72,7 +72,7 @@
 
     <TextView
         android:id="@+id/enemyDistance"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
@@ -101,7 +101,7 @@
 
     <TextView
         android:id="@+id/txtRunOver"
-        android:textSize="45dp"
+        android:textSize="40dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"

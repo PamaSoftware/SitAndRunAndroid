@@ -24,7 +24,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:hint="account name"
         android:gravity="center"
         android:ems="10"
         android:layout_above="@+id/signUpButton"
@@ -34,16 +33,18 @@
         android:layout_alignParentRight="true"
         android:textColor="#baff3800"
         android:textSize="20dp"
+        android:textCursorDrawable="@drawable/hint_prompt"
         android:layout_alignParentEnd="true"
-        android:textColorHint="#baff3800"
-        android:textIsSelectable="false" />
+        android:textColorHint="#91ff3800"
+        android:textIsSelectable="false"
+        android:hint="account" />
 
     <Button
         android:id="@+id/signUpButton"
         android:text="Sign Up"
         android:onClick="signUp"
         android:enabled="false"
-        android:textColor="#baff3800"
+        android:textColor="#53ff3800"
         android:textSize="15dp"
         android:layout_height="40dp"
         android:layout_width="150dp"
@@ -58,10 +59,10 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text=""
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/signUpButton" />
+        android:gravity="center"
+        android:textColor="#baff3800"
+        android:layout_below="@+id/signUpButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp" />
 
 </RelativeLayout>

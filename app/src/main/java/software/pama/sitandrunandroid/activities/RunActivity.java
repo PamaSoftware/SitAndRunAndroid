@@ -32,7 +32,7 @@ import software.pama.sitandrunandroid.R;
 import software.pama.sitandrunandroid.activities.helpers.IntentParams;
 import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayer;
-import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
+//import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 import software.pama.sitandrunandroid.model.RunResult;
 import software.pama.sitandrunandroid.run.RunConnector;
 import software.pama.sitandrunandroid.run.helpers.RunFinish;
@@ -271,6 +271,10 @@ public class RunActivity extends Activity {
             }
             return false;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 
     @Override

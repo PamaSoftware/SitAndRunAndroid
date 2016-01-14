@@ -30,54 +30,72 @@ public class TheIntegrationLayerMock implements IntegrationLayer {
 
     @Override
     public TheIntegrationLayer initialize(GoogleAccountCredential credential) {
-        return null;
+        // don't use this method in mocks
+        throw new RuntimeException();
     }
 
     @Override
     public Profile signIn() throws IOException {
+        sleep(1000);
         return new Profile().setLogin(TEST);
     }
 
     @Override
     public Profile signUp(String login) throws IOException {
+        sleep(1000);
         return new Profile().setLogin(TEST);
     }
 
     @Override
     public boolean deleteAccount() throws IOException {
+//        sleep(1000);
         return true;
     }
 
     @Override
     public RunStartInfo startRunWithRandom(RunPreferences preferences) throws IOException {
+//        sleep(1000);
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
     public RunStartInfo joinFriend(RunPreferences preferences) throws IOException {
+//        sleep(1000);
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
     public boolean hostRunWithFriend(String login, RunPreferences preferences) throws IOException {
+//        sleep(1000);
         return true;
     }
 
     @Override
     public RunStartInfo startRunWithFriend(RunPreferences preferences) throws IOException {
+//        sleep(1000);
         return new RunStartInfo().setDistance(DISTANCE).setTime(COUNTDOWN);
     }
 
     @Override
     public boolean checkIfHostAlive() throws IOException {
+//        sleep(1000);
         return true;
     }
 
     @Override
     public OpponentPositionInfo getEnemyResult(int forecast, RunResult myResult) throws IOException {
+//        sleep(1000);
         distance += 1;
         time += 1;
         return new OpponentPositionInfo().setDistance(distance).setTime(time);
+    }
+
+    private void sleep(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

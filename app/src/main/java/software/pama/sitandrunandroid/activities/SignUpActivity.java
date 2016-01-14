@@ -3,6 +3,7 @@ package software.pama.sitandrunandroid.activities;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -12,6 +13,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,19 +28,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import software.pama.sitandrunandroid.R;
+import software.pama.sitandrunandroid.activities.authorization.Authorization;
+import software.pama.sitandrunandroid.activities.preferences.PreferencesUtils;
+import software.pama.sitandrunandroid.integration.IntegrationLayer;
 import software.pama.sitandrunandroid.integration.TheIntegrationLayer;
+//import software.pama.sitandrunandroid.integration.TheIntegrationLayerMock;
 
 public class SignUpActivity extends Activity {
 
-    private static final String WEB_CLIENT_ID = "719222349392-l7voj898f7hgf9996e0k2l1j2pk8s5hu.apps.googleusercontent.com";
-    private static final String PREFERENCES_ACCOUNT_NAME = "ACCOUNT_NAME";
-    private static final String PREFERENCES_PROFILE_LOGIN = "PROFILE_LOGIN";
     private static final int PICK_ACCOUNT_ACTIVITY = 0;
     private GoogleAccountCredential credential;
     private SharedPreferences preferences;
     private Button signUpButton;
     private EditText loginTextField;
-    private TheIntegrationLayer integrationLayer;
+    private IntegrationLayer integrationLayer;
+    private ProgressDialog progress;
+    private boolean signUpError = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,36 +51,24 @@ public class SignUpActivity extends Activity {
         setContentView(R.layout.activity_authentication);
         loginTextField = (EditText) findViewById(R.id.login);
         signUpButton = (Button) findViewById(R.id.signUpButton);
+        preferences = PreferencesUtils.getInstance(this);
+        credential = Authorization.initializeCredential(this);
+//        integrationLayer = TheIntegrationLayerMock.getInstance();
+        integrationLayer = TheIntegrationLayer.getInstance();
+        integrationLayer = integrationLayer.initialize(credential);
+        updateAccountInfo();
         setupLoginWatcher();
-        preferences = getSharedPreferences("SitAndRun", MODE_PRIVATE);
-        initializeCredential();
-        manageAndroidAccounts();
-        integrationLayer = TheIntegrationLayer.getInstance().initialize(credential);
-        signIn();
-        findViewById(R.id.info).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
-            }
-        });
-        findViewById(R.id.signUpButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
-            }
-        });
-//        findViewById(R.id.action_bar_activity_content).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                startActivity(new Intent(SignUpActivity.this, EnemyPickerActivity.class));
-//            }
-//        });
-        loginTextField.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loginTextField.setHint("");
-            }
-        });
+        manageListeners();
+        prepareProgressBar();
+    }
+
+    private void updateAccountInfo() {
+        Account[] googleAccounts = AccountManager.get(this).getAccountsByType(GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE);
+        if (googleAccounts == null || googleAccounts.length == 0 || googleAccounts.length > 1)
+            pickAccount();
+        else
+            manageAccountName(googleAccounts[0].name);
+
     }
 
     private void setupLoginWatcher() {
@@ -90,51 +83,25 @@ public class SignUpActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.length() == 0)
+                if (s.length() == 0) {
                     signUpButton.setEnabled(false);
-                else
+                    signUpButton.setTextColor(0x53ff3800);
+                }
+                else {
                     signUpButton.setEnabled(true);
+                    signUpButton.setTextColor(0xbaff3800);
+                }
             }
         });
     }
 
-    private void initializeCredential() {
-        credential = GoogleAccountCredential.usingAudience(this,
-                "server:client_id:" + WEB_CLIENT_ID);
-    }
-
-    private void manageAndroidAccounts() {
-        String accountName = preferences.getString(PREFERENCES_ACCOUNT_NAME, null);
-        if (alreadySignedIn(accountName)) {
-            updateCredential(accountName);
-        } else {
-            updateAccountInfo();
-        }
-    }
-
-    private void signIn() {
-        try {
-            new SignInTask().execute();
-        } catch (Exception e) {
-            Logger.getLogger("Logger").log(Level.SEVERE, e.getMessage(), e);
-        }
-    }
-
-    private boolean alreadySignedIn(String accountName) {
-        return accountName != null;
-    }
-
-    private void updateCredential(String accountName) {
-        credential.setSelectedAccountName(accountName);
-    }
-
-    private void updateAccountInfo() {
-        Account[] googleAccounts = AccountManager.get(this).getAccountsByType(GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE);
-        if (googleAccounts != null && googleAccounts.length > 0) {
-            manageAccountName(googleAccounts[0].name);
-        } else {
-            pickAccount();
-        }
+    private void manageListeners() {
+        loginTextField.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loginTextField.setHint("");
+            }
+        });
     }
 
     private void pickAccount() {
@@ -159,15 +126,8 @@ public class SignUpActivity extends Activity {
     }
 
     private void manageAccountName(String accountName) {
-        updateCredential(accountName);
-        storeInPreferences(accountName);
-    }
-
-    private void storeInPreferences(String accountName) {
-        preferences
-            .edit()
-            .putString(PREFERENCES_ACCOUNT_NAME, accountName)
-            .commit();
+        credential.setSelectedAccountName(accountName);
+        PreferencesUtils.storeAccountName(preferences, accountName);
     }
 
     /**
@@ -175,21 +135,51 @@ public class SignUpActivity extends Activity {
      */
     public void signUp(View view) {
         // jeśli login jest zajęty to dajemy taką informację, robimy jakieś drganie ekranu
-
         // jeśli login nie jest zajęty, wyświetlamy informację o udanym utworzeniu konta (jakaś zielona otoczka wokół ekranu)
         try {
             new SignUpTask().execute(loginTextField.getText().toString());
+            progress.show();
         } catch (Exception e) {
             e.printStackTrace();
             Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
         }
     }
 
-    /**
-     * On click action for Confirm Login Button
-     */
-    public void confirmLogin(View view) {
-        startEnemyPickerActivity();
+    private void prepareProgressBar() {
+        progress = new ProgressDialog(this);
+        progress.setTitle("Wait");
+        progress.setMessage("Signing In...");
+    }
+
+    private class SignUpTask extends AsyncTask<String, Void, Profile> {
+
+        @Override
+        protected Profile doInBackground(String... params) {
+            try {
+                Profile profile = integrationLayer.signUp(params[0]);
+                if (profile != null)
+                    Logger.getAnonymousLogger().log(Level.INFO, "Login: " + profile.getLogin());
+                return profile;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
+                signUpError = true;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Profile profile) {
+            findViewById(R.id.signUpInfoText);
+            TextView signUpInfoText = (TextView) findViewById(R.id.signUpInfoText);
+            progress.dismiss();
+            if (profile == null && signUpError)
+                signUpInfoText.setText("Couldn't connect with server");
+            else if (profile == null)
+                signUpInfoText.setText("Account Name has already been used");
+            else
+                startEnemyPickerActivity();
+        }
     }
 
     private void startEnemyPickerActivity() {
@@ -219,59 +209,8 @@ public class SignUpActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class SignUpTask extends AsyncTask<String, Void, Profile> {
-
-        @Override
-        protected Profile doInBackground(String... params) {
-            try {
-                Profile profile = integrationLayer.signUp(params[0]);
-                Logger.getAnonymousLogger().log(Level.INFO, "Login: " + profile.getLogin());
-                return profile;
-            } catch (Exception e) {
-                e.printStackTrace();
-                Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Profile profile) {
-            findViewById(R.id.signUpInfoText);
-            TextView signUpInfoText = (TextView) findViewById(R.id.signUpInfoText);
-            if (profile == null)
-                signUpInfoText.setText("Nazwa jest zajęta. Podaj inny login.");
-            else {
-                signUpInfoText.setText("Konto założone pomyślnie z loginem " + profile.getLogin());
-                storeProfile(profile);
-            }
-        }
-    }
-
-    private class SignInTask extends AsyncTask<Void, Void, Profile> {
-
-        @Override
-        protected Profile doInBackground(Void... params) {
-            try {
-                 Profile profile = integrationLayer.signIn();
-                if (profile != null) {
-                    // zapisać profil w jakiś sposób
-                    storeProfile(profile);
-                    startEnemyPickerActivity();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Logger.getAnonymousLogger().log(Level.SEVERE, e.getMessage(), e);
-            }
-            return null;
-        }
-
-    }
-
-    private void storeProfile(Profile profile) {
-        preferences
-            .edit()
-            .putString(PREFERENCES_PROFILE_LOGIN, profile.getLogin())
-            .commit();
+    @Override
+    public void onBackPressed() {
     }
 
 }

@@ -11,11 +11,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.appspot.formidable_code_826.sitAndRunApi.model.OpponentPositionInfo;
-import com.appspot.formidable_code_826.sitAndRunApi.model.RunPreferences;
-import com.appspot.formidable_code_826.sitAndRunApi.model.RunResultPiece;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
@@ -44,7 +41,7 @@ public class ResultManager extends Service {
 //    private static final int LOCATION_ACCURACY_M = 20;
 //    private float locationUpdateDistanceM = 30;
     private static final int HEAD = 0;
-    //    private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
+//        private IntegrationLayer theIntegrationLayer = TheIntegrationLayerMock.getInstance();
     private IntegrationLayer theIntegrationLayer = TheIntegrationLayer.getInstance();
     private GpsLocationListener gpsLocationListener;
     private RunThread runThread;
@@ -57,6 +54,10 @@ public class ResultManager extends Service {
     private List<RunResult> userResults = new CopyOnWriteArrayList<>();
     private List<RunResult> enemyResults = new CopyOnWriteArrayList<>();
     private TheRunTimer theRunTimer;
+    private float enemyDistanceForTheMoment;
+    private float userDistanceForTheMoment;
+//    private boolean canPredictUser = false;
+//    private boolean canPredictEnemy = false;
 
     @Override
     public void onCreate() {
@@ -66,7 +67,7 @@ public class ResultManager extends Service {
         theRunTimer = TheRunTimer.getInstance();
         runFinish = new RunFinish();
         // testowo
-//        userDistance = -10;
+        userDistance = -10;
     }
 
     @Override
@@ -93,9 +94,8 @@ public class ResultManager extends Service {
      */
     public RunResult getUserResult() {
         int resultsSize = userResults.size();
-        if (resultsSize == 0) {
+        if (resultsSize == 0)
             return new RunResult(0, theRunTimer.getRunDurationMillis());
-        }
         else if (resultsSize > 0) {
             RunResult latestResult = userResults.get(HEAD);
             RunResult nextResult;
@@ -108,32 +108,24 @@ public class ResultManager extends Service {
             long t1 = nextResult.getTotalTimeMillis();
             long t2 = latestResult.getTotalTimeMillis();
             long t3 = theRunTimer.getRunDurationMillis(); //t3
-            float distanceForTheMoment;
-            if (t3 < t2) {
-                throw new RuntimeException();
-            } else {
-                float deltaDistance = ((s2 - s1)/(t2 - t1))*(t3 - t2);
-                distanceForTheMoment = s2 + deltaDistance;
-            }
-            if (distanceForTheMoment >= distanceToRun) {
+            float distanceForTheMoment = 0;
+//            if (canPredictUser) {
+//                canPredictUser = false;
+                // prediction
+                if (t3 < t2) {
+                    throw new RuntimeException();
+                } else {
+                    float deltaDistance = ((s2 - s1) / (t2 - t1)) * (t3 - t2);
+                    distanceForTheMoment = s2 + deltaDistance;
+                }
+//            }
+            if (userDistanceForTheMoment >= distanceToRun) {
                 return new RunResult(distanceToRun, t3);
             }
-            distanceForTheMoment = roundUp((int) distanceForTheMoment);
-            return new RunResult(distanceForTheMoment, t3);
+            if (distanceForTheMoment > userDistanceForTheMoment)
+                userDistanceForTheMoment = roundUp((int) distanceForTheMoment);
+            return new RunResult(userDistanceForTheMoment, t3);
         }
-//        } else if (resultsSize == 1) {
-//            RunResult result = enemyResults.get(HEAD);
-//            RunResult prediction = predictWithOneResult(result);
-//            return prediction;
-//        } else {
-//            RunResult latestResult = userResults.get(HEAD);
-//            RunResult nextResult = userResults.get(1);
-//            RunResult prediction = predictWithTwoResults(latestResult, nextResult);
-////            Logger.getLogger("").info("User distance = " + distanceForTheMoment);
-//            if (prediction.getTotalDistance() >= distanceToRun)
-//                return new RunResult(distanceToRun, prediction.getTotalTimeMillis());
-//            return prediction;
-//        }
         throw new RuntimeException();
 //        return userResults.get(HEAD);
     }
@@ -150,9 +142,8 @@ public class ResultManager extends Service {
      */
     public RunResult getEnemyResult() {
         int resultsSize = enemyResults.size();
-        if (resultsSize == 0) {
+        if (resultsSize == 0)
             return new RunResult(0, theRunTimer.getRunDurationMillis());
-        }
         else if (resultsSize > 0) {
             RunResult latestResult = enemyResults.get(HEAD);
             RunResult nextResult;
@@ -165,25 +156,31 @@ public class ResultManager extends Service {
             long t1 = nextResult.getTotalTimeMillis();
             long t2 = latestResult.getTotalTimeMillis();
             long currentRunTime = theRunTimer.getRunDurationMillis(); //t3
-            float distanceForTheMoment;
-            if (currentRunTime < t2) {
-                float deltaDistance = ((s2 - s1)/(t2 - t1))*(currentRunTime - t1);
-                distanceForTheMoment = s1 + deltaDistance;
-            } else {
-                float deltaDistance = ((s2 - s1)/(t2 - t1))*(currentRunTime - t2);
-                distanceForTheMoment = s2 + deltaDistance;
-            }
-            if (distanceForTheMoment >= distanceToRun) {
+            float distanceForTheMoment = 0;
+//            if (canPredictEnemy) {
+//                canPredictEnemy = false;
+                // prediction
+                if (currentRunTime < t2) {
+                    float deltaDistance = ((s2 - s1) / (t2 - t1)) * (currentRunTime - t1);
+                    distanceForTheMoment = s1 + deltaDistance;
+                } else {
+                    float deltaDistance = ((s2 - s1) / (t2 - t1)) * (currentRunTime - t2);
+                    distanceForTheMoment = s2 + deltaDistance;
+                }
+//            }
+            if (enemyDistanceForTheMoment >= distanceToRun) {
                 return new RunResult(distanceToRun, currentRunTime);
             }
-            distanceForTheMoment = roundUp((int) distanceForTheMoment);
-            return new RunResult(distanceForTheMoment, currentRunTime);
+            if (distanceForTheMoment > enemyDistanceForTheMoment)
+                enemyDistanceForTheMoment = roundUp((int) distanceForTheMoment);
+            return new RunResult(enemyDistanceForTheMoment, currentRunTime);
         }
         throw new RuntimeException();
     }
 
     private int roundUp(int n) {
-        return (n + 4) / 5 * 5;
+        return n;
+//        return (n + 4) / 5 * 5;
     }
 
     public long getRunTime() {
@@ -271,26 +268,27 @@ public class ResultManager extends Service {
 //            }
 //            else {
 
-//                userDistance += 5;
-//                if (userDistance > 0)
-//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
-
-                Location newLocation = gpsLocationListener.getCurrentLocation();
-                if (newLocation != null && isAccurate(newLocation) && isFarEnough(newLocation)) {
-                    if (userLocation != null)
-                        userDistance += userLocation.distanceTo(newLocation);
-                    userLocation = newLocation;
-                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
-                    float edge = (distanceToRun - userDistance) / (float) distanceToRun;
-                    if (edge < 0.05) {
-                        lowerLocationUpdateDistance(0.33f);
-                    }
-                    Log.d("RunThread", "Total distance: " + userDistance);
-                } else {
-                    // TODO to był kiedyś problem, teraz nie wiadomo jak to wpłynie na przebieg biegu, powinno być wszystko okej
+                userDistance += 5;
+                if (userDistance > 0) {
                     userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
                 }
-//            }
+//                canPredictUser = true;
+//                Location newLocation = gpsLocationListener.getCurrentLocation();
+//                if (newLocation != null && isAccurate(newLocation) && isFarEnough(newLocation)) {
+//                    if (userLocation != null)
+//                        userDistance += userLocation.distanceTo(newLocation);
+//                    userLocation = newLocation;
+//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
+//                    float edge = (distanceToRun - userDistance) / (float) distanceToRun;
+//                    if (edge < 0.05) {
+//                        lowerLocationUpdateDistance(0.33f);
+//                    }
+//                    Log.d("RunThread", "Total distance: " + userDistance);
+//                } else {
+//                    // TODO to był kiedyś problem, teraz nie wiadomo jak to wpłynie na przebieg biegu, powinno być wszystko okej
+//                    userResults.add(HEAD, new RunResult(userDistance, theRunTimer.getRunDurationMillis()));
+//                }
+////            }
             Logger.getLogger("").info("Run " + userDistance);
             if (distanceToRun - userDistance <= 0 || runFinish.isRunOver()) {
                 Logger.getLogger("").info("Stopping run thread.");
@@ -352,8 +350,10 @@ public class ResultManager extends Service {
                     OpponentPositionInfo enemyResultPiece = theIntegrationLayer.getEnemyResult(FORECAST_SECONDS, userResult);
                     if (enemyResultPiece != null) {
                         Integer enemyDistance = enemyResultPiece.getDistance();
-                        if (enemyDistance > 0)
+                        if (enemyDistance > 0) {
                             enemyResults.add(HEAD, new RunResult(enemyDistance, enemyResultPiece.getTime() * 1000));
+//                            canPredictEnemy = true;
+                        }
                         else if (enemyDistance == -1 && enemyResultPiece.getTime() >= 0) {
                             runFinish.setRunOver(true);
                             if (enemyResultPiece.getTime() == 0) {
